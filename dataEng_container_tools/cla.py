@@ -162,7 +162,7 @@ class command_line_arguments:
         return output
 
     def get_secret_location(self):
-        if not self.__secret_location:
+        if not self.__secret_locations:
             return None
         return self.__args.gcs_secret_locations
 
