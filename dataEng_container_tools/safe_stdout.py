@@ -48,7 +48,7 @@ def setup_default_stdout(folder = default_secret_folder):
         return
     bad_words = set()
     files = [os.path.join(dp, f) for dp, dn, fn in os.walk(folder) for f in fn]
-    print("Found these secret files:", files)
+    # print("Found these secret files:", files)
     for file in files:
         try:
             secret = json.load(open(file,'r'))
