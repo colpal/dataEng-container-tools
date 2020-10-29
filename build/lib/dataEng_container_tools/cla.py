@@ -101,7 +101,7 @@ class command_line_arguments:
         if secret_locations:
             parser.add_argument("--gcs_secret_locations", type = str, required=secret_locations.value,
                                 default = self.__default_secret_locations, nargs = '+', 
-                                help = "Locations of GCS secrets injected by Vault. Default: '" + self.__default_secret_locations + "'.")
+                                help = "Locations of GCS secrets injected by Vault. Default: '" + str(self.__default_secret_locations) + "'.")
         if default_file_type:
             parser.add_argument("--default_file_type", type = str,required=default_file_type.value,
                                 choices = ["parquet", "csv", "pkl", "json"], default = "parquet",
