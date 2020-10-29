@@ -30,10 +30,10 @@ Has three classes: **custom_command_line_argument**, **command_line_argument_typ
     * description : Optional. Defaults to `None`.
     * input_dtypes: Optional. Defaults to `None`.
     * parser: Optional. Defaults to `None`.
+  * get_arguments: Returns the arguments passed in through the command line.
+  * get_input_dtypes: 
+  * get_input_uris:
+  * get_output_uris: 
+  * get_secret_locations:
+  * check_args: 
   
-
-This class is initialised with the following arguments:
-    *input_files:
-    *output_files: = None, secret_locations = None,
-                default_file_type = None, custom_inputs = None, description = None,
-                input_dtypes = None, parser = None
