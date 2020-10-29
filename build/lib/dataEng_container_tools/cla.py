@@ -161,7 +161,7 @@ class command_line_arguments:
             output.append("gs://"+bucket_name+"/"+self.__args.output_paths[pos]+"/"+filename)
         return output
 
-    def get_secret_location(self):
+    def get_secret_locations(self):
         if not self.__secret_locations:
             return None
         return self.__args.gcs_secret_locations
