@@ -71,3 +71,20 @@ Deals with uploading and downloading files to/from GCS. Has one class `gcs_file_
 * upload_files_to_disk: Uploads files from GCS to the container's hard drive:
   * gcs_uris: Required.
   * local_locations: Optional. Defaults to `None`.
+
+## safe_stdout:
+Ensures that secrets are not accidentally printed using stdout. Has one class `safe_stdout`, two helper methods, `setup_stdout` and `setup_default_stdout`, and one global variable `default_secret_folder`:
+* safe_stdout: The output class in charge of outputting to the command line. Replaces stdout. Has the following methods:
+  * init: Creates the class with the following inputs:
+    * bad_words: Required. A list of words to censor from output.
+  * write: Writes a message to the command line. Usually called through Python's built in `print()` function. Has the following inputs:
+    * message: Required. The message to write.
+  * add_words: Adds a list of words to the list of words being censored. Has the following inputs:
+    * bad_words: Required. A list of wors to censor from output.
+* setup_stdout: Censors all the values in a list of secret files from stdout. Takes the following input:
+  * secret_locations: Required. A list of secret file locations.
+* setup_default_stdout: Censors all values from secret files contained in folder. Takes the following input:
+  * folder: Optional. Defaults to `default_secret_folder`. The path of the folder containing the secret files.
+* default_secret_folder: Variable containing the folder in which secrets are injected by default. Currently set to `'/vault/secrets/'`.
+
+
