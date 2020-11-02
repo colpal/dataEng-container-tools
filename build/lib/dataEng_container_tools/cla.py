@@ -4,7 +4,7 @@ import sys
 from enum import Enum
 from .safe_stdout import setup_stdout
 
-default_gcs_secret_location = '/vault/secrets/gcp-sa-storage.json'
+default_gcs_secret_locations = ['/vault/secrets/gcp-sa-storage.json']
 
 class custom_command_line_argument:
     """Class for creating custom command line arguments.
@@ -59,18 +59,18 @@ class command_line_arguments:
     __args = None
     __input_files = None
     __output_files = None
-    __secret_location = None
+    __secret_locations = None
     __default_file_type = None
     __custom_inputs = None
     __description = None
     __input_dtypes = None
-    __default_secret_location = default_gcs_secret_location
-    def __init__(self, input_files = None, output_files = None, secret_location = None,
+    __default_secret_locations = default_gcs_secret_locations
+    def __init__(self, input_files = None, output_files = None, secret_locations = None,
                 default_file_type = None, custom_inputs = None, description = None,
                 input_dtypes = None, parser = None):
         self.__input_files = input_files
         self.__output_files = output_files
-        self.__secret_location = secret_location
+        self.__secret_locations = secret_locations
         self.__default_file_type = default_file_type
         self.__custom_inputs = custom_inputs
         self.__description = description
@@ -98,10 +98,10 @@ class command_line_arguments:
 
             parser.add_argument("--output_filenames", type=str, required=output_files.value,
                                 nargs = '+', help="Filename to write file to.")
-        if secret_location:
-            parser.add_argument("--gcs_secret_location", type = str, required=secret_location.value,
-                                default = self.__default_secret_location,
-                                help = "Location of GCS secret injected by Vault. Default: '" + self.__default_secret_location + "'.")
+        if secret_locations:
+            parser.add_argument("--gcs_secret_locations", type = str, required=secret_locations.value,
+                                default = self.__default_secret_locations, nargs = '+', 
+                                help = "Locations of GCS secrets injected by Vault. Default: '" + str(self.__default_secret_locations) + "'.")
         if default_file_type:
             parser.add_argument("--default_file_type", type = str,required=default_file_type.value,
                                 choices = ["parquet", "csv", "pkl", "json"], default = "parquet",
@@ -117,8 +117,8 @@ class command_line_arguments:
         self.__args = parser.parse_args()
         print("CLA Input:", self)
         self.check_args()
-        if self.__secret_location and (self.__args.gcs_secret_location != self.__default_secret_location):
-            setup_stdout(self.__args.gcs_secret_location)
+        if self.__secret_locations:
+            setup_stdout(self.__args.gcs_secret_locations)
 
     def __str__(self):
         return self.__args.__str__()
@@ -161,10 +161,10 @@ class command_line_arguments:
             output.append("gs://"+bucket_name+"/"+self.__args.output_paths[pos]+"/"+filename)
         return output
 
-    def get_secret_location(self):
-        if not self.__secret_location:
+    def get_secret_locations(self):
+        if not self.__secret_locations:
             return None
-        return self.__args.gcs_secret_location
+        return self.__args.gcs_secret_locations
 
     def check_args(self):
         #TODO: Implement this
