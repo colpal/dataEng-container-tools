@@ -11,6 +11,7 @@ class safe_stdout:
         self.__old_stdout = sys.stdout
 
     def write(self, message):
+        message = str(message)
         for location, bad_word in enumerate(self.__bad_words):
             bad_word_length = self.__bad_word_lengths[location]
             bad_word_location = message.find(bad_word)

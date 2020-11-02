@@ -39,7 +39,7 @@ class gcs_file_io:
             return json.load(file_like_object)
         return file_like_object
 
-    def download_files_to_objects(self, gcs_uris, default_file_type = None, dtypes = None):
+    def download_files_to_objects(self, gcs_uris, default_file_types = None, dtypes = None):
         dtypes_status = 0
         if dtypes:
             dtypes_status +=1
@@ -48,14 +48,14 @@ class gcs_file_io:
         return_objects = []
         for pos, gcs_uri in enumerate(gcs_uris):
             if dtypes_status == 0:
-                return_objects.append(self.download_file_to_object(gcs_uri, default_file_type= default_file_type))
+                return_objects.append(self.download_file_to_object(gcs_uri, default_file_type= default_file_types[pos]))
             elif dtypes_status == 1:
                 return_objects.append(self.download_file_to_object(gcs_uri,
-                                                                    default_file_type= default_file_type,
+                                                                    default_file_type= default_file_types[pos],
                                                                     dtype = dtypes[0]))
             else:
                 return_objects.append(self.download_file_to_object(gcs_uri,
-                                                                    default_file_type= default_file_type,
+                                                                    default_file_type= default_file_types[pos],
                                                                     dtype = dtypes[pos]))
         return return_objects
 
