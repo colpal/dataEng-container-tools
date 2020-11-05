@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: dataEng-container-tools
-Version: 0.0.8
+Version: 0.0.9
 Summary: A package containing tools for data engineering containers.
 Home-page: https://github.com/colpal/dataEng-container-tools
 Author: Alexander Saff
@@ -51,35 +51,35 @@ Description: # Data Engineering Container Tools
         ## GCS:
         Deals with uploading and downloading files to/from GCS. Has one class `gcs_file_io` with the following methods:
         * `__init__`: Creates the class with the following inputs:
-          * `gcs_secret_location`: Required.
+          * `gcs_secret_location`: Required. The location of the secret file needed for GCS.
         * `download_file_to_object`: Downloads a file from GCS to an object in memory:
-          * `gcs_uri`: Required.
-          * `default_file_type`: Optional. Defaults to `None`.
-          * `dtype`: Optional. Defaults to `None`.
+          * `gcs_uri`: Required. The uri of the object in GCS to download.
+          * `default_file_type`: Optional. Defaults to `None`. If the uri the object does not have a file type ending, it will be assumed to be this type.
+          * `dtype`: Optional. Defaults to `None`. A dictionary of (column: type) pairs.
         * `download_files_to_objects`: Downloads files from GCS to objects in memory:
-          * `gcs_uris`: Required.
-          * `default_file_types`: Optional. Defaults to `None`.
-          * `dtypes`: Optional. Defaults to `None`.
+          * `gcs_uris`: Required. The uris of the object in GCS to download.
+          * `default_file_types`: Optional. Defaults to `None`. A list of stings. If the uri an object does not have a file type ending, it will be assumed to be this type.
+          * `dtypes`: Optional. Defaults to `None`. A list of dictionary of (column: type) pairs.
         * `download_file_to_disk`: Downloads a file from GCS to the container's hard drive:
-          * `gcs_uri`: Required.
-          * `local_location`: Optional. Defaults to `None`.
+          * `gcs_uri`: Required. The uri of the object in GCS to download.
+          * `local_location`: Optional. Defaults to `None`. Where to save the object. If `None`, saves to same path as the the GCS URI.
         * `download_files_to_disk`: Downloads files from GCS to the container's hard drive:
-          * `gcs_uris`: Required.
-          * `local_locations`: Optional. Defaults to `None`.
-        * `upload_file_to_object`: Uploads a file from GCS to an object in memory:
-          * `gcs_uri`: Required.
-          * `default_file_type`: Optional. Defaults to `None`.
-          * `dtype`: Optional. Defaults to `None`.
-        * `upload_files_to_objects`: Uploads files from GCS to objects in memory:
-          * `gcs_uris`: Required.
-          * `default_file_types`: Optional. Defaults to `None`.
-          * `dtypes`: Optional. Defaults to `None`.
-        * `upload_file_to_disk`: Uploads a file from GCS to the container's hard drive:
-          * `gcs_uri`: Required.
-          * `local_location`: Optional. Defaults to `None`.
-        * `upload_files_to_disk`: Uploads files from GCS to the container's hard drive:
-          * `gcs_uris`: Required.
-          * `local_locations`: Optional. Defaults to `None`.
+          * `gcs_uris`: Required. The uris of the objects in GCS to download.
+          * `local_locations`: Optional. Defaults to `None`. The locations to save the objects. If `None`, saves to same paths as the the GCS URIs.
+        * `upload_file_from_object`: Uploads a file to GCS from an object in memory:
+          * `gcs_uri`: Required. The uri to which the object will be uploaded.
+          * `default_file_type`: Optional. Defaults to `None`. If the uri does not have a file type ending, it will be assumed to be this type.
+          * `dtype`: Optional. Defaults to `None`. A dictionary of (column: type) pairs.
+        * `upload_files_from_objects`: Uploads files to GCS from objects in memory:
+          * `gcs_uris`: Required. The uris to which the objects will be uploaded.
+          * `default_file_types`: Optional. Defaults to `None`. A list of stings. If the uri an object does not have a file type ending, it will be assumed to be this type.
+          * `dtypes`: Optional. Defaults to `None`. A list of dictionary of (column: type) pairs.
+        * `upload_file_from_disk`: Uploads a file to GCS from the container's hard drive:
+          * `gcs_uri`: Required. The uri to which the object will be uploaded.
+          * `local_location`: Optional. Defaults to `None`. The location of the object. If `None`, assumes the same path as the the GCS URI.
+        * `upload_files_from_disk`: Uploads files to GCS from the container's hard drive:
+          * `gcs_uris`: Required. The uris to which the objects will be uploaded.
+          * `local_locations`: Optional. Defaults to `None`. The locations of the objects. If `None`, assumes the same paths as the the GCS URIs.
         
         ## safe_stdout:
         Ensures that secrets are not accidentally printed using stdout. Has one class `safe_stdout`, two helper methods, `setup_stdout` and `setup_default_stdout`, and one global variable `default_secret_folder`:
