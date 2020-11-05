@@ -97,6 +97,9 @@ Ensures that secrets are not accidentally printed using stdout. Has one class `s
 ## Example:
 An example workflow might look something like this:
 ```
+from dataEng_container_tools.cla import command_line_arguments, command_line_argument_type
+from dataEng_container_tools.gcs import gcs_file_io
+
 my_inputs = command_line_arguments(secret_locations=command_line_argument_type.OPTIONAL,
                                    input_files=command_line_argument_type.REQUIRED,
                                    output_files=command_line_argument_type.REQUIRED)
