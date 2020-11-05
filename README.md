@@ -93,3 +93,21 @@ Ensures that secrets are not accidentally printed using stdout. Has one class `s
   * `folder`: Optional. Defaults to `default_secret_folder`. The path of the folder containing the secret files.
   
 * `default_secret_folder`: Variable containing the folder in which secrets are injected by default. Currently set to `'/vault/secrets/'`.
+
+## Example:
+An example workflow might look something like this:
+```
+my_inputs = command_line_arguments(secret_locations=command_line_argument_type.OPTIONAL,
+                                   input_files=command_line_argument_type.REQUIRED,
+                                   output_files=command_line_argument_type.REQUIRED)
+
+input_uris = my_inputs.get_input_uris()
+output_uris = my_inputs.get_output_uris()
+secret_locations = my_inputs.get_secret_locations()                              
+file_io = gcs_file_io(gcs_secret_location = secret_locations[0])
+pqt_obj = file_io.download_file_to_object(input_uris[0])
+#
+# Edit the object in some way here.
+#
+result = file_io.upload_file_from_object(gcs_uri=output_uris[0], object_to_upload=pqt_obj)
+```
