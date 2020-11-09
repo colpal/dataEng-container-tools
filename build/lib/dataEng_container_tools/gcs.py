@@ -83,10 +83,16 @@ class gcs_file_io:
         return return_locations
 
     def upload_file_from_disk(self, gcs_uri, local_location, metadata = {}):
-        try:
+        if 'DAG_ID' in os.environ.keys():
+            metadata['DAG_ID'] = os.environ['DAG_ID']
+        if 'RUN_ID' in os.environ.keys():
+            metadata['RUN_ID'] = os.environ['RUN_ID']
+        if 'NAMESPACE' in os.environ.keys():
+            metadata['NAMESPACE'] = os.environ['NAMESPACE']
+        if 'POD_NAME' in os.environ.keys():
+            metadata['POD_NAME'] = os.environ['POD_NAME']
+        if 'GITHUB_SHA' in os.environ.keys():
             metadata['git_hash'] = os.environ['GITHUB_SHA']
-        except KeyError:
-            print('GITHUB_SHA enviornment variable is not set.')
         if self.local:
             if gcs_uri != local_location:
                 open(gcs_uri, 'wb').write(open(local_location, 'rb').read())
@@ -109,10 +115,16 @@ class gcs_file_io:
         return return_objects
 
     def upload_file_from_object(self, gcs_uri, object_to_upload, default_file_type = None, metadata = {}):
-        try:
+        if 'DAG_ID' in os.environ.keys():
+            metadata['DAG_ID'] = os.environ['DAG_ID']
+        if 'RUN_ID' in os.environ.keys():
+            metadata['RUN_ID'] = os.environ['RUN_ID']
+        if 'NAMESPACE' in os.environ.keys():
+            metadata['NAMESPACE'] = os.environ['NAMESPACE']
+        if 'POD_NAME' in os.environ.keys():
+            metadata['POD_NAME'] = os.environ['POD_NAME']
+        if 'GITHUB_SHA' in os.environ.keys():
             metadata['git_hash'] = os.environ['GITHUB_SHA']
-        except KeyError:
-            print('GITHUB_SHA enviornment variable is not set.')
         file_path = None
         blob = None
         if not self.local:

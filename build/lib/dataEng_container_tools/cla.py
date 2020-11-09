@@ -3,6 +3,7 @@ import json
 import sys
 from enum import Enum
 from .safe_stdout import setup_stdout, default_secret_folder
+import os
 
 default_gcs_secret_locations = [default_secret_folder + '/gcp-sa-storage.json']
 
@@ -68,7 +69,7 @@ class command_line_arguments:
     __default_secret_locations = default_gcs_secret_locations
     def __init__(self, input_files = None, output_files = None, secret_locations = None,
                 default_file_type = None, custom_inputs = None, description = None,
-                input_dtypes = None, running_local = None, parser = None):
+                input_dtypes = None, running_local = None, identifying_tags = None, parser = None):
         self.__input_files = input_files
         self.__output_files = output_files
         self.__secret_locations = secret_locations
@@ -111,6 +112,11 @@ class command_line_arguments:
         if running_local:
             parser.add_argument("--running_local", type = bool, required=running_local.value,
                                 default = False, help = "If the container is running locally (no contact with GCP).")
+        if identifying_tags:
+            parser.add_argument("--dag_id", type = str, required = identifying_tags.value, help = "The DAG ID")
+            parser.add_argument("--run_id", type = str, requiired = identifying_tags.value, help = "The run ID")
+            parser.add_argument("--namespace", type = str, requiired = identifying_tags.value, help = "The namespace")
+            parser.add_argument("--pod_name", type = str, requiired = identifying_tags.value, help = "The pod name")
         if custom_inputs:
             for item in custom_inputs:
                 parser.add_argument(name = "--"+item.name, action = item.action, nargs = item.nargs,
@@ -120,6 +126,11 @@ class command_line_arguments:
                                         dest = item.dest)
         self.__args = parser.parse_args()
         print("CLA Input:", self)
+        if identifying_tags:
+            os.environ["DAG_ID"] = self.__args.dag_id
+            os.environ["RUN_ID"] = self.__args.run_id
+            os.environ["NAMESPACE"] = self.__args.namespace
+            os.environ["POD_NAME"] = self.__args.pod_name
         self.check_args()
         if self.__secret_locations:
             setup_stdout(self.__args.gcs_secret_locations)

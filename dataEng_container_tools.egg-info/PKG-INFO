@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: dataEng-container-tools
-Version: 0.0.11
+Version: 0.0.12
 Summary: A package containing tools for data engineering containers.
 Home-page: https://github.com/colpal/dataEng-container-tools
 Author: Alexander Saff
@@ -60,14 +60,14 @@ Description: # Data Engineering Container Tools
           * `dtype`: Optional. Defaults to `None`. A dictionary of (column: type) pairs.
         * `download_files_to_objects`: Downloads files from GCS to objects in memory:
           * `gcs_uris`: Required. The uris of the object in GCS to download. If `running_local` is `True`, it is the paths to local files that will be read into objects.
-          * `default_file_types`: Optional. Defaults to `None`. A list of stings. If the uri an object does not have a file type ending, it will be assumed to be this type.
-          * `dtypes`: Optional. Defaults to `None`. A list of dictionary of (column: type) pairs.
+          * `default_file_type`: Optional. Defaults to `None`. A string. If the uri an object does not have a file type ending, it will be assumed to be this type.
+          * `dtypes`: Optional. Defaults to empty list. A list of dictionary of (column: type) pairs.
         * `download_file_to_disk`: Downloads a file from GCS to the container's hard drive:
           * `gcs_uri`: Required. The uri of the object in GCS to download. If `running_local` is `True`, it is the path to a local file that will be copied to `local_location`.
           * `local_location`: Optional. Defaults to `None`. Where to save the object. If `None`, saves to same path as the the GCS URI.
         * `download_files_to_disk`: Downloads files from GCS to the container's hard drive:
           * `gcs_uris`: Required. The uris of the objects in GCS to download. If `running_local` is `True`, it is the paths to local files that will be copied to `local_locations`.
-          * `local_locations`: Optional. Defaults to `None`. The locations to save the objects. If `None`, saves to same paths as the the GCS URIs.
+          * `local_locations`: Optional. Defaults to empty list. The locations to save the objects. If empty, saves to same paths as the the GCS URIs.
         * `upload_file_from_object`: Uploads a file to GCS from an object in memory:
           * `gcs_uri`: Required. The uri to which the object will be uploaded. If `running_local` is `True`, it is the path to a local file where the object will be written.
           * `default_file_type`: Optional. Defaults to `None`. If the uri does not have a file type ending, it will be assumed to be this type.
@@ -75,7 +75,7 @@ Description: # Data Engineering Container Tools
           * `metadata`: Optional dictionary. Defaults to an empty dictionary. The metadata to add to the object. Git hash is added automatically if `GITHUB_SHA` is set as an enviornment variable.
         * `upload_files_from_objects`: Uploads files to GCS from objects in memory:
           * `gcs_uris`: Required. The uris to which the objects will be uploaded. If `running_local` is `True`, it is the paths to local files where the objects will be written.
-          * `default_file_types`: Optional. Defaults to `None`. A list of stings. If the uri an object does not have a file type ending, it will be assumed to be this type.
+          * `default_file_type`: Optional. Defaults to `None`. A sting. If the uri an object does not have a file type ending, it will be assumed to be this type.
           * `dtypes`: Optional. Defaults to `None`. A list of dictionary of (column: type) pairs.
         * `upload_file_from_disk`: Uploads a file to GCS from the container's hard drive:
           * `gcs_uri`: Required. The uri to which the object will be uploaded. If `running_local` is `True`, it is the path to a local file that will be copied from `local_location`.
@@ -84,6 +84,7 @@ Description: # Data Engineering Container Tools
         * `upload_files_from_disk`: Uploads files to GCS from the container's hard drive:
           * `gcs_uris`: Required. The uris to which the objects will be uploaded. If `running_local` is `True`, it is the paths to local files that will be copied from `local_locations`.
           * `local_locations`: Optional. Defaults to `None`. The locations of the objects. If `None`, assumes the same paths as the the GCS URIs.
+          * `metadata`: Optional list of dictionaries. Defaults to empty. The metadata to add to the objects. Git hash is added automatically if `GITHUB_SHA` is set as an enviornment variable.
         
         ## safe_stdout:
         Ensures that secrets are not accidentally printed using stdout. Has one class `safe_stdout`, two helper methods, `setup_stdout` and `setup_default_stdout`, and one global variable `default_secret_folder`:
