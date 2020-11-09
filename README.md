@@ -64,6 +64,7 @@ Deals with uploading and downloading files to/from GCS. Has one class `gcs_file_
   * `gcs_uri`: Required. The uri to which the object will be uploaded. If `running_local` is `True`, it is the path to a local file where the object will be written.
   * `default_file_type`: Optional. Defaults to `None`. If the uri does not have a file type ending, it will be assumed to be this type.
   * `dtype`: Optional. Defaults to `None`. A dictionary of (column: type) pairs.
+  * `metadata`: Optional dictionary. Defaults to an empty dictionary. The metadata to add to the object. Git hash is added automatically if `GITHUB_SHA` is set as an enviornment variable.
 * `upload_files_from_objects`: Uploads files to GCS from objects in memory:
   * `gcs_uris`: Required. The uris to which the objects will be uploaded. If `running_local` is `True`, it is the paths to local files where the objects will be written.
   * `default_file_types`: Optional. Defaults to `None`. A list of stings. If the uri an object does not have a file type ending, it will be assumed to be this type.
@@ -71,6 +72,7 @@ Deals with uploading and downloading files to/from GCS. Has one class `gcs_file_
 * `upload_file_from_disk`: Uploads a file to GCS from the container's hard drive:
   * `gcs_uri`: Required. The uri to which the object will be uploaded. If `running_local` is `True`, it is the path to a local file that will be copied from `local_location`.
   * `local_location`: Optional. Defaults to `None`. The location of the object. If `None`, assumes the same path as the the GCS URI.
+  * `metadata`: Optional dictionary. Defaults to an empty dictionary. The metadata to add to the object. Git hash is added automatically if `GITHUB_SHA` is set as an enviornment variable.
 * `upload_files_from_disk`: Uploads files to GCS from the container's hard drive:
   * `gcs_uris`: Required. The uris to which the objects will be uploaded. If `running_local` is `True`, it is the paths to local files that will be copied from `local_locations`.
   * `local_locations`: Optional. Defaults to `None`. The locations of the objects. If `None`, assumes the same paths as the the GCS URIs.
