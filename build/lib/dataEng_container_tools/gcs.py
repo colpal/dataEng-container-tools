@@ -3,6 +3,7 @@ import pandas as pd
 import io
 from google.cloud import storage
 import pickle
+import os
 
 class gcs_file_io:
     gcs_client = None
@@ -70,7 +71,8 @@ class gcs_file_io:
         if self.local:
             if not local_location:
                 return gcs_uri
-            open(local_location, 'wb').write(open(gcs_uri, 'rb').read())
+            if gcs_uri != local_location:
+                open(local_location, 'wb').write(open(gcs_uri, 'rb').read())
             return local_location
         bucket_name, file_path = self.__get_parts(gcs_uri)
         # print("Bucket:", bucket_name, "File:", file_path)
@@ -86,13 +88,16 @@ class gcs_file_io:
             return_locations.append(self.download_file_to_disk(gcs_uri = gcs_uri, local_location = local_locations[pos]))
         return return_locations
 
-    def upload_file_from_disk(self, gcs_uri, local_location):
+    def upload_file_from_disk(self, gcs_uri, local_location, metadata = {}):
+        metadata['git_hash'] = os.environ['GITHUB_SHA']
         if self.local:
-            open(gcs_uri, 'wb').write(open(local_location, 'rb').read())
+            if gcs_uri != local_location:
+                open(gcs_uri, 'wb').write(open(local_location, 'rb').read())
             return gcs_uri
         bucket_name, file_path = self.__get_parts(gcs_uri)
         bucket = self.gcs_client.bucket(bucket_name)
         blob = bucket.blob(file_path)
+        blob.metadata = metadata
         return blob.upload_from_filename(local_location)
 
     def upload_files_from_disk(self, gcs_uris, local_locations):
@@ -101,13 +106,15 @@ class gcs_file_io:
             return_objects.append(self.upload_file_from_disk(gcs_uri, local_locations[pos]))
         return return_objects
 
-    def upload_file_from_object(self, gcs_uri, object_to_upload, default_file_type = None):
+    def upload_file_from_object(self, gcs_uri, object_to_upload, default_file_type = None, metadata = {}):
+        metadata['git_hash'] = os.environ['GITHUB_SHA']
         file_path = None
         blob = None
         if not self.local:
             bucket_name, file_path = self.__get_parts(gcs_uri)
             bucket = self.gcs_client.bucket(bucket_name)
             blob = bucket.blob(file_path)
+            blob.metadata = metadata
         hasEnding = file_path.endswith('.parquet') or file_path.endswith('.csv') or file_path.endswith('.pkl')
         if file_path.endswith('.parquet') or ((not hasEnding) and (default_file_type == 'parquet')):
             if self.local:

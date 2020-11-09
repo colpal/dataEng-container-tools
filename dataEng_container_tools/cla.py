@@ -2,9 +2,9 @@ import argparse
 import json
 import sys
 from enum import Enum
-from .safe_stdout import setup_stdout
+from .safe_stdout import setup_stdout, default_secret_folder
 
-default_gcs_secret_locations = ['/vault/secrets/gcp-sa-storage.json']
+default_gcs_secret_locations = [default_secret_folder + '/gcp-sa-storage.json']
 
 class custom_command_line_argument:
     """Class for creating custom command line arguments.
@@ -64,10 +64,11 @@ class command_line_arguments:
     __custom_inputs = None
     __description = None
     __input_dtypes = None
+    __running_local = None
     __default_secret_locations = default_gcs_secret_locations
     def __init__(self, input_files = None, output_files = None, secret_locations = None,
                 default_file_type = None, custom_inputs = None, description = None,
-                input_dtypes = None, parser = None):
+                input_dtypes = None, running_local = None, parser = None):
         self.__input_files = input_files
         self.__output_files = output_files
         self.__secret_locations = secret_locations
@@ -75,6 +76,7 @@ class command_line_arguments:
         self.__custom_inputs = custom_inputs
         self.__description = description
         self.__input_dtypes = input_dtypes
+        self.__running_local = running_local
         parser = parser if parser else argparse.ArgumentParser(description=description)
         if input_files:
             parser.add_argument("--input_bucket_names", type=str, required=input_files.value,
@@ -106,7 +108,9 @@ class command_line_arguments:
             parser.add_argument("--default_file_type", type = str,required=default_file_type.value,
                                 choices = ["parquet", "csv", "pkl", "json"], default = "parquet",
                                 help = "How to handle input/output files if no file extension found. Choice of 'parquet', 'csv', 'pkl', and 'json'. Default 'parquet'.")
-
+        if running_local:
+            parser.add_argument("--running_local", type = bool, required=running_local.value,
+                                default = False, help = "If the container is running locally (no contact with GCP).")
         if custom_inputs:
             for item in custom_inputs:
                 parser.add_argument(name = "--"+item.name, action = item.action, nargs = item.nargs,
