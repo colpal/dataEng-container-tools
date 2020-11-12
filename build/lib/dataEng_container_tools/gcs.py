@@ -20,9 +20,9 @@ class gcs_file_io:
 
     def __get_parts(self, gcs_uri):
         if gcs_uri.startswith('gs://'):
-            uri = gcs_uri[5:]
-        bucket = uri[:uri.find("/")]
-        file_path = uri[uri.find("/")+1:]
+            gcs_uri = gcs_uri[5:]
+        bucket = gcs_uri[:gcs_uri.find("/")]
+        file_path = gcs_uri[gcs_uri.find("/")+1:]
         return bucket, file_path
 
     def download_file_to_object(self, gcs_uri, default_file_type = None, dtype = None):
