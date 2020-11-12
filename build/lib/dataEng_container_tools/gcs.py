@@ -33,7 +33,9 @@ class gcs_file_io:
             file_like_object = open(gcs_uri)
         else:
             bucket_name, file_path = self.__get_parts(gcs_uri)
+            print('Bucket name:', bucket_name, 'filepath:', file_path)
             bucket = self.gcs_client.bucket(bucket_name)
+            print('bucket:', bucket)
             binary_object = bucket.get_blob(file_path).download_as_string()
             file_like_object = io.BytesIO(binary_object)
         hasEnding = file_path.endswith('.parquet') or file_path.endswith('.csv') or file_path.endswith('.pkl')

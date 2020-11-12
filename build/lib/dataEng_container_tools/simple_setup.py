@@ -60,7 +60,7 @@ class simple_setup:
     def get_input_objects(self):
         return_dict = {}
         for item in self.__input_args:
-            return_dict[item] = self.__gcs_io.download_file_to_object(item)
+            return_dict[item] = self.__gcs_io.download_file_to_object(self.__input_args[item])
         return return_dict
 
     def upload_objects(self, objects):
