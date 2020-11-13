@@ -34,6 +34,7 @@ class gcs_file_io:
         else:
             bucket_name, file_path = self.__get_parts(gcs_uri)
             print('Bucket name:', bucket_name.split('-'), 'filepath:', file_path)
+            print('GCS Client:', self.gcs_client)
             bucket = self.gcs_client.bucket(bucket_name)
             print('bucket:', bucket)
             binary_object = bucket.blob(file_path).download_as_string()
