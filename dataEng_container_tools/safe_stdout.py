@@ -3,6 +3,7 @@ import json
 import os
 
 default_secret_folder = '/vault/secrets/'
+default_gcs_secret_locations = [default_secret_folder + 'gcp-sa-storage.json']
 
 class safe_stdout:
     def __init__(self, bad_words):
@@ -49,7 +50,7 @@ def setup_default_stdout(folder = default_secret_folder):
         return
     bad_words = set()
     files = [os.path.join(dp, f) for dp, dn, fn in os.walk(folder) for f in fn]
-    # print("Found these secret files:", files)
+    print("Found these secret files:", files)
     for file in files:
         try:
             secret = json.load(open(file,'r'))
