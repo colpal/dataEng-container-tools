@@ -1,5 +1,5 @@
 from .gcs import gcs_file_io
-from .cla import default_gcs_secret_locations
+from .safe_stdout import default_gcs_secret_locations
 import argparse
 
 class simple_setup:

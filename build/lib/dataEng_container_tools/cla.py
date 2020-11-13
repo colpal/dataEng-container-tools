@@ -2,10 +2,8 @@ import argparse
 import json
 import sys
 from enum import Enum
-from .safe_stdout import setup_stdout, default_secret_folder
+from .safe_stdout import setup_stdout, default_gcs_secret_locations
 import os
-
-default_gcs_secret_locations = [default_secret_folder + '/gcp-sa-storage.json']
 
 class custom_command_line_argument:
     """Class for creating custom command line arguments.
