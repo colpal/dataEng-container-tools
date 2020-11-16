@@ -1,6 +1,6 @@
 # Data Engineering Container Tools
 
-This packages is split into three parts: **CLA**, **GCS**, and **safe_stdout**.
+This packages is split into four parts: **CLA**, **GCS**, **safe_stdout**, and **simple_setup**.
 
 ## CLA:
 Deals with receiving input from the command line. Has three classes: `custom_command_line_argument`, `command_line_argument_type`, and `command_line_arguments`.
@@ -98,7 +98,7 @@ Ensures that secrets are not accidentally printed using stdout. Has one class `s
 * `default_secret_folder`: Variable containing the folder in which secrets are injected by default. Currently set to `'/vault/secrets/'`.
 
 ## Example:
-An example workflow might look something like this:
+An example workflow using the classes above might look something like this:
 ```
 from dataEng_container_tools.cla import command_line_arguments, command_line_argument_type
 from dataEng_container_tools.gcs import gcs_file_io
@@ -116,4 +116,17 @@ pqt_obj = file_io.download_file_to_object(input_uris[0])
 # Edit the object in some way here.
 #
 result = file_io.upload_file_from_object(gcs_uri=output_uris[0], object_to_upload=pqt_obj)
+```
+
+## simple_setup:
+A simple way to get input from the command line, and download and upload documents to/from GCS. Fewer options than the classes above but also fewer lines of code to write. A brief example (documentation to come):
+```
+from dataEng_container_tools.simple_setup import simple_setup
+simple = simple_setup(['input_left', 'input_right', 'output_inner', 'output_outer', 'secret_location', 'example_flag'])
+objects = simple.get_input_objects()
+#
+# Edit the objects in some way here.
+#
+return_objs = {'output_outer': objects['input_left'], 'output_inner': objects['input_right']}
+upload = simp.upload_objects(return_objs)
 ```
