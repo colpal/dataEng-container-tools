@@ -67,6 +67,7 @@ class simple_setup:
         return_dict = {}
         for item in objects:
             return_dict[item] = self.__gcs_io.upload_file_from_object(self.__output_args[item], objects[item])
+            print('Succesfully uploaded', item, 'to', self.__output_args[item])
         return return_dict
 
     def get_input_args(self):
@@ -83,8 +84,3 @@ class simple_setup:
 
     def get_args(self):
         return {'input': self.__input_args, 'output': self.__output_args, 'secret': self.__secret_args, 'other': self.__other_args}
-
-
-# simple = simple_setup(['input_left', 'input_right', 'output_inner', 'output_outer', 'secret_location'])
-
-# print(simple.get_args())
