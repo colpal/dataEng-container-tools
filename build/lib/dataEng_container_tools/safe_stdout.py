@@ -7,15 +7,16 @@ default_gcs_secret_locations = [default_secret_folder + 'gcp-sa-storage.json']
 
 class safe_stdout:
     def __init__(self, bad_words):
-        self.__bad_words = list(set(bad_words))
-        self.__bad_word_lengths = [len(bad_word) for bad_word in bad_words]
+        self.__bad_words = {}
+        for item in bad_words:
+            self.__bad_words[item] = len(item)
         self.__old_stdout = sys.stdout
 
     def write(self, message):
         message = str(message)
-        for location, bad_word in enumerate(self.__bad_words):
-            bad_word_length = self.__bad_word_lengths[location]
+        for bad_word in self.__bad_words:
             bad_word_location = message.find(bad_word)
+            bad_word_length = self.__bad_words[bad_word]
             while(bad_word_location != -1):
                 message = (message[0:bad_word_location] + '*'*bad_word_length +
                            message[bad_word_location + bad_word_length:])
@@ -23,9 +24,8 @@ class safe_stdout:
         self.__old_stdout.write(message)
 
     def add_words(self, bad_words):
-        self.__bad_words += bad_words
-        self.__bad_words = list(set(self.__bad_words))
-        self.__bad_word_lengths = [len(bad_word) for bad_word in self.__bad_words]
+        for item in bad_words:
+            self.__bad_words[item] = len(item)
 
     def flush(self):
         pass
