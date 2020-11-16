@@ -2,7 +2,7 @@ import argparse
 import json
 import sys
 from enum import Enum
-from .safe_stdout import setup_stdout, default_gcs_secret_locations
+from .safe_stdout import setup_stdout, default_gcs_secret_locations, secrets_files
 import os
 
 class custom_command_line_argument:
@@ -175,9 +175,27 @@ class command_line_arguments:
         return output
 
     def get_secret_locations(self):
-        if not self.__secret_locations:
+        if self.__secret_locations:
+            return self.__args.gcs_secret_locations
+        if len(secrets_files) > 0:
+            return secrets_files
+        return None
+
+    def get_secrets(self):
+        return_list = {}
+        secret_list = None
+        if self.__secret_locations:
+            secret_list = self.__args.gcs_secret_locations
+        elif len(secrets_files) > 0:
+            secret_list = secrets_files
+        else:
             return None
-        return self.__args.gcs_secret_locations
+        for item in secret_list:
+            try:
+                return_list[item.split('/')[-1]] = json.load(open(item,'r'))
+            except ValueError:
+                print(item, "is not a properly formatted json file.")
+        return return_list
 
     def check_args(self):
         #TODO: Implement this
