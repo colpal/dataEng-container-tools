@@ -192,7 +192,7 @@ class command_line_arguments:
             return None
         for item in secret_list:
             try:
-                return_list[item.split('/')[-1]] = json.load(open(item,'r'))
+                return_list[item.strip('.json').split('/')[-1]] = json.load(open(item,'r'))
             except ValueError:
                 print(item, "is not a properly formatted json file.")
         return return_list
