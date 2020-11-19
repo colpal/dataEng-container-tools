@@ -4,6 +4,7 @@ import os
 
 default_secret_folder = '/vault/secrets/'
 default_gcs_secret_locations = [default_secret_folder + 'gcp-sa-storage.json']
+secrets_files = []
 
 class safe_stdout:
     def __init__(self, bad_words):
@@ -41,6 +42,8 @@ def setup_stdout(secret_locations):
         bad_words.update(these_bad_words)
         for word in these_bad_words:
             bad_words.add(json.dumps(word))
+            bad_words.add(json.dumps(word).encode('unicode-escape').decode())
+            bad_words.add(word.encode('unicode-escape').decode())
     sys.stdout.add_words(bad_words)
 
 def setup_default_stdout(folder = default_secret_folder):
@@ -56,8 +59,11 @@ def setup_default_stdout(folder = default_secret_folder):
             secret = json.load(open(file,'r'))
         except ValueError:
             print(file, "is not a properly formatted json file.")
+        secrets_files.append(file)
         these_bad_words = set(secret.values())
         bad_words.update(these_bad_words)
         for word in these_bad_words:
             bad_words.add(json.dumps(word))
+            bad_words.add(json.dumps(word).encode('unicode-escape').decode())
+            bad_words.add(word.encode('unicode-escape').decode())
     sys.stdout = safe_stdout(bad_words)
