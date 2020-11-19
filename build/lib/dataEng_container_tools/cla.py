@@ -100,9 +100,9 @@ class command_line_arguments:
             parser.add_argument("--output_filenames", type=str, required=output_files.value,
                                 nargs = '+', help="Filename to write file to.")
         if secret_locations:
-            parser.add_argument("--gcs_secret_locations", type = str, required=secret_locations.value,
+            parser.add_argument("--secret_locations", type = str, required=secret_locations.value,
                                 default = self.__default_secret_locations, nargs = '+', 
-                                help = "Locations of GCS secrets injected by Vault. Default: '" + str(self.__default_secret_locations) + "'.")
+                                help = "Locations of secrets injected by Vault. Default: '" + str(self.__default_secret_locations) + "'.")
         if default_file_type:
             parser.add_argument("--default_file_type", type = str,required=default_file_type.value,
                                 choices = ["parquet", "csv", "pkl", "json"], default = "parquet",
@@ -131,7 +131,7 @@ class command_line_arguments:
             os.environ["POD_NAME"] = self.__args.pod_name
         self.check_args()
         if self.__secret_locations:
-            setup_stdout(self.__args.gcs_secret_locations)
+            setup_stdout(self.__args.secret_locations)
 
     def __str__(self):
         return self.__args.__str__()
@@ -176,7 +176,7 @@ class command_line_arguments:
 
     def get_secret_locations(self):
         if self.__secret_locations:
-            return self.__args.gcs_secret_locations
+            return self.__args.secret_locations
         if len(secrets_files) > 0:
             return secrets_files
         return None
@@ -185,7 +185,7 @@ class command_line_arguments:
         return_list = {}
         secret_list = None
         if self.__secret_locations:
-            secret_list = self.__args.gcs_secret_locations
+            secret_list = self.__args.secret_locations
         elif len(secrets_files) > 0:
             secret_list = secrets_files
         else:
