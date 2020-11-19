@@ -124,9 +124,11 @@ A simple way to get input from the command line, and download and upload documen
 from dataEng_container_tools.simple_setup import simple_setup
 simple = simple_setup(['input_left', 'input_right', 'output_inner', 'output_outer', 'secret_location', 'example_flag'])
 objects = simple.get_input_objects()
+input_left_object = objects['input_left']
+input_right_object = objects['input_right']
 #
 # Edit the objects in some way here.
 #
-return_objs = {'output_outer': objects['input_left'], 'output_inner': objects['input_right']}
-upload = simp.upload_objects(return_objs)
+return_objs = {'output_outer': output_outer_object, 'output_inner': output_inner_object}
+upload = simple.upload_objects(return_objs)
 ```
