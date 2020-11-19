@@ -42,6 +42,7 @@ def setup_stdout(secret_locations):
         bad_words.update(these_bad_words)
         for word in these_bad_words:
             bad_words.add(json.dumps(word))
+            bad_words.add(json.dumps(json.dumps(word))[2:-3])
     sys.stdout.add_words(bad_words)
 
 def setup_default_stdout(folder = default_secret_folder):
