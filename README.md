@@ -39,6 +39,7 @@ Deals with receiving input from the command line. Has three classes: `custom_com
   * `get_input_uris`: Returns the input_uris passed in through the command line as a list of strings. All of the format `gs://[BUCKETNAME]/[FILEPATH]/[FILENAME]`. If one bucket is specified, the same bucket is used for every file path. If more than one bucket is specified, one bucket is used for one file path, and there must be a 1:1:1 ratio of buckets to filepaths, to file names.
   * `get_output_uris`: Returns the output_uris passed in through the command line as a list of strings. All of the format `gs://[BUCKETNAME]/[FILEPATH]/[FILENAME]`. If one bucket is specified, the same bucket is used for every file path. If more than one bucket is specified, one bucket is used for one file path, and there must be a 1:1:1 ratio of buckets to filepaths, to file names.
   * `get_secret_locations`: Returns the secret locations passed in through the command line as a list of strings.
+  * `get_secrets`: Returns a dictionary of objects. The key is the file name of the secret, and the object is that file loaded using 'json.load()`.
   * `check_args`: Does nothing. In future this will error check the arguments passed in through the command line.
   
 ## GCS:
