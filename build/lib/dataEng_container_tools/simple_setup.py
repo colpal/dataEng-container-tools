@@ -51,7 +51,7 @@ class simple_setup:
             other_args[arg] = args.__dict__[arg]
         for arg in secret_location_args:
             secret_location_args[arg] = args.__dict__[arg]
-            if 'gcs' in arg or 'gcs' in secret_location_args[arg]:
+            if self.__is_storage_secret(arg, secret_location_args[arg]):
                 gcs_secret_location = secret_location_args[arg]
         for secret in self.__find_secrets():
             name = secret.split('/')[-1].strip('.json')
@@ -64,6 +64,13 @@ class simple_setup:
         print(self.get_args())
         self.__gcs_io = gcs_file_io(gcs_secret_location = gcs_secret_location)
     
+    def __is_storage_secret(self, word1, word2):
+        words = ['gcs', 'storage', 'GCS', 'STORAGE']
+        for word in words:
+            if (word in word1) or (word in word2):
+                return True
+        return False
+
     def __find_secrets(self):
         if(not os.path.exists(default_secret_folder)):
             print("No secret files found in default directory")
