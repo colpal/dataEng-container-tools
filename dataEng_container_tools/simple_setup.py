@@ -1,13 +1,16 @@
 from .gcs import gcs_file_io
-from .safe_stdout import default_gcs_secret_locations
+from .safe_stdout import default_gcs_secret_locations, default_secret_folder
 import argparse
+import json
+import os
 
 class simple_setup:
     def __init__(self, argument_names):
         input_args = {}
         output_args = {}
         other_args = {}
-        secret_args = {}
+        found_secrets = {}
+        secret_location_args = {}
         gcs_secret_location = default_gcs_secret_locations[0]
         parser = argparse.ArgumentParser()
         for name in argument_names:
@@ -28,7 +31,7 @@ class simple_setup:
             elif 'secret' in name and 'location' in name:
                 print("Secret:", name)
                 parser.add_argument('--'+name, required=True)
-                secret_args[name] = None
+                secret_location_args[name] = None
             else:
                 print("Other:", name)
                 parser.add_argument('--'+name, required=True)
@@ -46,16 +49,28 @@ class simple_setup:
                 output_args[arg] = args.__dict__[arg+'bucket'] + '/' + args.__dict__[arg+'path'] + '/' + args.__dict__[arg+'filename']
         for arg in other_args:
             other_args[arg] = args.__dict__[arg]
-        for arg in secret_args:
-            secret_args[arg] = args.__dict__[arg]
-            if 'gcs' in arg or 'gcs' in secret_args[arg]:
-                gcs_secret_location = secret_args[arg]
+        for arg in secret_location_args:
+            secret_location_args[arg] = args.__dict__[arg]
+            if 'gcs' in arg or 'gcs' in secret_location_args[arg]:
+                gcs_secret_location = secret_location_args[arg]
+        for secret in self.__find_secrets():
+            name = secret.split('/')[-1].strip('.json')
+            found_secrets[name] = secret
         self.__input_args = input_args
         self.__output_args = output_args
-        self.__secret_args = secret_args
+        self.__secret_location_args = secret_location_args
         self.__other_args = other_args
+        self.__found_secrets = found_secrets
         print(self.get_args())
         self.__gcs_io = gcs_file_io(gcs_secret_location = gcs_secret_location)
+    
+    def __find_secrets(self):
+        if(not os.path.exists(default_secret_folder)):
+            print("No secret files found in default directory")
+            return
+        files = [os.path.join(dp, f) for dp, dn, fn in os.walk(default_secret_folder) for f in fn]
+        print("Found these secret files:", files)
+        return files
 
     def get_input_objects(self):
         return_dict = {}
@@ -76,11 +91,28 @@ class simple_setup:
     def get_output_args(self):
         return self.__output_args
 
-    def get_secret_args(self):
-        return self.__secret_args
+    def get_secret_location_args(self):
+        return self.__secret_location_args
+
+    def get_found_secrets(self):
+        return self.__found_secrets
+    
+    def get_secrets_objects(self):
+        return_dict = {}
+        for item in self.__secret_location_args:
+            try:
+                return_dict[item] = json.load(self.__secret_location_args[item])
+            except ValueError:
+                print(self.__secret_location_args[item], 'is not a properly formatted JSON.')
+        return return_dict
     
     def get_other_args(self):
         return self.__other_args
 
     def get_args(self):
-        return {'input': self.__input_args, 'output': self.__output_args, 'secret': self.__secret_args, 'other': self.__other_args}
+        return {'input': self.__input_args,'output': self.__output_args,
+                'secret_location': self.__secret_location_args, 'other': self.__other_args,
+                'found_secrets':, self.__found_secrets}
+
+    def __str__(self):
+        str(self.get_args())
