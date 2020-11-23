@@ -112,7 +112,7 @@ class simple_setup:
     def get_args(self):
         return {'input': self.__input_args,'output': self.__output_args,
                 'secret_location': self.__secret_location_args, 'other': self.__other_args,
-                'found_secrets':, self.__found_secrets}
+                'found_secrets': self.__found_secrets}
 
     def __str__(self):
         str(self.get_args())
