@@ -36,6 +36,9 @@ class simple_setup:
                 print("Other:", name)
                 parser.add_argument('--'+name, required=True)
                 other_args[name] = None
+        parser.add_argument("--running_local", type = bool, required=False,
+                                default = False, help = "If the container is running locally (no contact with GCP).")
+        other_args['running_local'] = None
         args = parser.parse_args()
         for arg in input_args:
             if args.__dict__[arg] is not None:
@@ -62,7 +65,7 @@ class simple_setup:
         self.__other_args = other_args
         self.__found_secrets = found_secrets
         print(self.get_args())
-        self.__gcs_io = gcs_file_io(gcs_secret_location = gcs_secret_location)
+        self.__gcs_io = gcs_file_io(gcs_secret_location = gcs_secret_location, local = other_args['running_local'])
     
     def __is_storage_secret(self, word1, word2):
         words = ['gcs', 'storage', 'GCS', 'STORAGE']
