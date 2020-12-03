@@ -55,19 +55,11 @@ class command_line_argument_type(Enum):
 
 class command_line_arguments:
     """Simplified process for creating command line arguments. Allows for custom CLAs."""
-    __args = None
-    __input_files = None
-    __output_files = None
-    __secret_locations = None
-    __default_file_type = None
-    __custom_inputs = None
-    __description = None
-    __input_dtypes = None
-    __running_local = None
     __default_secret_locations = default_gcs_secret_locations
     def __init__(self, input_files = None, output_files = None, secret_locations = None,
                 default_file_type = None, custom_inputs = None, description = None,
-                input_dtypes = None, running_local = None, identifying_tags = None, parser = None):
+                input_dtypes = None, running_local = None, identifying_tags = None,
+                parser = None):
         self.__input_files = input_files
         self.__output_files = output_files
         self.__secret_locations = secret_locations
@@ -89,7 +81,8 @@ class command_line_arguments:
             if input_dtypes:
                 parser.add_argument("--input_dtypes", type=json.loads, required=input_dtypes.value,
                                 nargs ='+', help = "JSON dictionaries of (column: type) pairs to cast columns to")
-
+            parser.add_argument("--input_delimiters", type=str, required=False,
+                            nargs ='+', help = "Delimiters for input files")
         if output_files:
             parser.add_argument("--output_bucket_names", type=str, required=output_files.value,
                                 nargs = '+', help="GCS Bucket to write to.")
@@ -99,6 +92,8 @@ class command_line_arguments:
 
             parser.add_argument("--output_filenames", type=str, required=output_files.value,
                                 nargs = '+', help="Filename to write file to.")
+            parser.add_argument("--output_delimiters", type=str, required=False,
+                            nargs ='+', help = "Delimiters for output files")
         if secret_locations:
             parser.add_argument("--secret_locations", type = str, required=secret_locations.value,
                                 default = self.__default_secret_locations, nargs = '+', 

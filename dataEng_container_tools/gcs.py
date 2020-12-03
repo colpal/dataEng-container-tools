@@ -25,12 +25,25 @@ class gcs_file_io:
         file_path = gcs_uri[gcs_uri.find("/")+1:]
         return bucket, file_path
 
-    def download_file_to_object(self, gcs_uri, default_file_type = None, dtype = None):
+    def __wildcard_download(self, gcs_uri, default_file_type, dtype):
+        return_dict = {}
+        bucket_name, file_path = self.__get_parts(gcs_uri)
+        bucket = self.gcs_client.bucket(bucket_name)
+        prefix = file_path.strip('*')
+        blobs = list(bucket.list_blobs(prefix=prefix))
+        for blob in blobs:
+            return_dict[blob.name] = self.download_file_to_object(blob.name, default_file_type=default_file_type,
+                                                                  dtype=dtype)
+        return return_dict
+
+    def download_file_to_object(self, gcs_uri, default_file_type = None, dtype = None, delimiter = None):
         file_path = None
         file_like_object = None
         if self.local:
             file_path = gcs_uri
             file_like_object = open(gcs_uri)
+        elif '*' in gcs_uri:
+            return self.__wildcard_download(gcs_uri, default_file_type, dtype)
         else:
             bucket_name, file_path = self.__get_parts(gcs_uri)
             bucket = self.gcs_client.bucket(bucket_name)
@@ -40,22 +53,28 @@ class gcs_file_io:
         if file_path.endswith('.parquet') or ((not hasEnding) and (default_file_type == 'parquet')):
             return pd.read_parquet(file_like_object, dtype = dtype) if dtype else pd.read_parquet(file_like_object)
         if file_path.endswith('.csv') or ((not hasEnding) and (default_file_type == 'csv')):
-            return pd.read_csv(file_like_object, dtype = dtype) if dtype else pd.read_csv(file_like_object)
+            return pd.read_csv(file_like_object, dtype = dtype, delimiter=delimiter) if dtype else pd.read_csv(file_like_object, delimiter=delimiter)
         if file_path.endswith('.pkl') or ((not hasEnding) and (default_file_type == 'pkl')):
             return pd.read_pickle(file_like_object) if dtype else pd.read_pickle(file_like_object)#, dtype = dtype
         if file_path.endswith('.json') or ((not hasEnding) and (default_file_type == 'json')):
             return json.load(file_like_object)
         return file_like_object
 
-    def download_files_to_objects(self, gcs_uris, default_file_type = None, dtypes = []):
+    def download_files_to_objects(self, gcs_uris, default_file_type = None, dtypes = [], delimiters = []):
         return_objects = []
         for pos, gcs_uri in enumerate(gcs_uris):
             dt = None
+            delim = None
             if len(dtypes) == 1:
                 dt = dtypes[0]
             elif len(dtypes) > 1:
                 dt = dtypes[pos]
-            return_objects.append(self.download_file_to_object(gcs_uri, default_file_type= default_file_type, dtype = dt))
+            if len(delimiters) == 1:
+                delim = delimiters[0]
+            elif len(delimiters) > 1:
+                delim = delimiters[pos]
+            return_objects.append(self.download_file_to_object(gcs_uri, default_file_type=default_file_type,
+                                  dtype = dt, delimiter = delim))
         return return_objects
 
     def download_file_to_disk(self, gcs_uri, local_location = None):
