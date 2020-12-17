@@ -39,10 +39,9 @@ class simple_setup:
         parser.add_argument("--running_local", type = bool, required=False,
                                 default = False, help = "If the container is running locally (no contact with GCP).")
         other_args['running_local'] = None
-        if len(input_args) > 0:
-            parser.add_argument('--csv_delimiter', required=False, default=',',
-                                help='Delimiter for CSV files. Default is ",".')
-            input_args['csv_delimiter'] = None
+        parser.add_argument('--csv_delimiter', required=False, default=',',
+                            help='Delimiter for CSV files. Default is ",".')
+        other_args['csv_delimiter'] = None
         args = parser.parse_args()
         for arg in input_args:
             if args.__dict__[arg] is not None:
@@ -89,7 +88,7 @@ class simple_setup:
     def get_input_objects(self):
         return_dict = {}
         for item in self.__input_args:
-            return_dict[item] = self.__gcs_io.download_file_to_object(self.__input_args[item], delimiter=self.__input_args['csv_delimiter'])
+            return_dict[item] = self.__gcs_io.download_file_to_object(self.__input_args[item], delimiter=self.__other_args['csv_delimiter'])
         return return_dict
 
     def upload_objects(self, objects):
