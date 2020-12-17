@@ -6,6 +6,7 @@ import pickle
 import os
 
 class gcs_file_io:
+    """ """
     gcs_client = None
     gcs_secret_location = None
 
@@ -37,6 +38,17 @@ class gcs_file_io:
         return return_dict
 
     def download_file_to_object(self, gcs_uri, default_file_type = None, dtype = None, delimiter = None):
+        """
+
+        Args:
+          gcs_uri: 
+          default_file_type:  (Default value = None)
+          dtype:  (Default value = None)
+          delimiter:  (Default value = None)
+
+        Returns:
+
+        """
         file_path = None
         file_like_object = None
         if self.local:
@@ -61,6 +73,17 @@ class gcs_file_io:
         return file_like_object
 
     def download_files_to_objects(self, gcs_uris, default_file_type = None, dtypes = [], delimiters = []):
+        """
+
+        Args:
+          gcs_uris: 
+          default_file_type:  (Default value = None)
+          dtypes:  (Default value = [])
+          delimiters:  (Default value = [])
+
+        Returns:
+
+        """
         return_objects = []
         for pos, gcs_uri in enumerate(gcs_uris):
             dt = None
@@ -78,6 +101,15 @@ class gcs_file_io:
         return return_objects
 
     def download_file_to_disk(self, gcs_uri, local_location = None):
+        """
+
+        Args:
+          gcs_uri: 
+          local_location:  (Default value = None)
+
+        Returns:
+
+        """
         if self.local:
             if not local_location:
                 return gcs_uri
@@ -91,6 +123,15 @@ class gcs_file_io:
         return local_location
 
     def download_files_to_disk(self, gcs_uris, local_locations = []):
+        """
+
+        Args:
+          gcs_uris: 
+          local_locations:  (Default value = [])
+
+        Returns:
+
+        """
         return_locations = []
         for pos, gcs_uri in enumerate(gcs_uris):
             if len(local_locations) > 0:
@@ -100,6 +141,16 @@ class gcs_file_io:
         return return_locations
 
     def upload_file_from_disk(self, gcs_uri, local_location, metadata = {}):
+        """
+
+        Args:
+          gcs_uri: 
+          local_location: 
+          metadata:  (Default value = {})
+
+        Returns:
+
+        """
         if 'DAG_ID' in os.environ.keys():
             metadata['DAG_ID'] = os.environ['DAG_ID']
         if 'RUN_ID' in os.environ.keys():
@@ -121,6 +172,16 @@ class gcs_file_io:
         return blob.upload_from_filename(local_location)
 
     def upload_files_from_disk(self, gcs_uris, local_locations, metadata=[]):
+        """
+
+        Args:
+          gcs_uris: 
+          local_locations: 
+          metadata:  (Default value = [])
+
+        Returns:
+
+        """
         return_objects = []
         for pos, gcs_uri in enumerate(gcs_uris):
             if len(metadata) ==0:
@@ -132,6 +193,17 @@ class gcs_file_io:
         return return_objects
 
     def upload_file_from_object(self, gcs_uri, object_to_upload, default_file_type = None, metadata = {}):
+        """
+
+        Args:
+          gcs_uri: 
+          object_to_upload: 
+          default_file_type:  (Default value = None)
+          metadata:  (Default value = {})
+
+        Returns:
+
+        """
         if 'DAG_ID' in os.environ.keys():
             metadata['DAG_ID'] = os.environ['DAG_ID']
         if 'RUN_ID' in os.environ.keys():
@@ -180,6 +252,17 @@ class gcs_file_io:
         return blob.upload_from_file(fileObject)
 
     def upload_files_from_objects(self, gcs_uris, objects_to_upload, default_file_type = None, metadata = []):
+        """
+
+        Args:
+          gcs_uris: 
+          objects_to_upload: 
+          default_file_type:  (Default value = None)
+          metadata:  (Default value = [])
+
+        Returns:
+
+        """
         return_objects = []
         for pos, gcs_uri in enumerate(gcs_uris):
             if len(metadata)==0:

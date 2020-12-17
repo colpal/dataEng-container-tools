@@ -6,20 +6,8 @@ from .safe_stdout import setup_stdout, default_gcs_secret_locations, secrets_fil
 import os
 
 class custom_command_line_argument:
-    """Class for creating custom command line arguments.
-       Takes in all arguments needed for 'command_line_arguments'
-       to construct an additional custom argument."""
-    name = None
-    action = None
-    nargs = None
-    const = None
-    default = None
-    data_type = None
-    choices = None
-    required = None
-    help_message = None
-    metavar = None
-    dest = None
+    """ """
+
     def __init__(self, name, action = None, nargs = None, const = None, default = None,
                 data_type = None, choices = None, required = None, help_message = None,
                 metavar = None, dest = None):
@@ -49,12 +37,12 @@ class custom_command_line_argument:
         "dest: " + self.dest)
 
 class command_line_argument_type(Enum):
-    """Enum type for dictating whether fields in 'command_line_arguments' class are OPTIONAL or REQUIRED."""
+    """ """
     OPTIONAL = False
     REQUIRED = True
 
 class command_line_arguments:
-    """Simplified process for creating command line arguments. Allows for custom CLAs."""
+    """ """
     __default_secret_locations = default_gcs_secret_locations
     def __init__(self, input_files = None, output_files = None, secret_locations = None,
                 default_file_type = None, custom_inputs = None, description = None,
@@ -132,14 +120,17 @@ class command_line_arguments:
         return self.__args.__str__()
 
     def get_arguments(self):
+        """ """
         return self.__args
 
     def get_input_dtypes(self):
+        """ """
         if not self.__input_dtypes:
             return None
         return self.__args.input_dtypes
 
     def get_input_uris(self):
+        """ """
         if not self.__input_files:
             return []
         constant_bucket = False
@@ -155,6 +146,7 @@ class command_line_arguments:
         return output
 
     def get_output_uris(self):
+        """ """
         if not self.__output_files:
             return []
         constant_bucket = False
@@ -170,6 +162,7 @@ class command_line_arguments:
         return output
 
     def get_secret_locations(self):
+        """ """
         if self.__secret_locations:
             return self.__args.secret_locations
         if len(secrets_files) > 0:
@@ -177,6 +170,7 @@ class command_line_arguments:
         return None
 
     def get_secrets(self):
+        """ """
         return_list = {}
         secret_list = None
         if self.__secret_locations:
@@ -193,5 +187,6 @@ class command_line_arguments:
         return return_list
 
     def check_args(self):
+        """ """
         #TODO: Implement this
         return
