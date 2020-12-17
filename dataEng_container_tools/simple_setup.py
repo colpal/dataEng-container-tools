@@ -39,7 +39,7 @@ class simple_setup:
         parser.add_argument("--running_local", type = bool, required=False,
                                 default = False, help = "If the container is running locally (no contact with GCP).")
         other_args['running_local'] = None
-        if len(input_args > 0):
+        if len(input_args) > 0:
             parser.add_argument('--csv_delimiter', required=False, default=',',
                                 help='Delimiter for CSV files. Default is ",".')
             input_args['csv_delimiter'] = None
