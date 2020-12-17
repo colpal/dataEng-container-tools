@@ -5,6 +5,7 @@ import json
 import os
 
 class simple_setup:
+    """ """
     def __init__(self, argument_names):
         input_args = {}
         output_args = {}
@@ -86,12 +87,21 @@ class simple_setup:
         return files
 
     def get_input_objects(self):
+        """ """
         return_dict = {}
         for item in self.__input_args:
             return_dict[item] = self.__gcs_io.download_file_to_object(self.__input_args[item], delimiter=self.__other_args['csv_delimiter'])
         return return_dict
 
     def upload_objects(self, objects):
+        """
+
+        Args:
+          objects: 
+
+        Returns:
+
+        """
         return_dict = {}
         for item in objects:
             return_dict[item] = self.__gcs_io.upload_file_from_object(self.__output_args[item], objects[item])
@@ -99,18 +109,23 @@ class simple_setup:
         return return_dict
 
     def get_input_args(self):
+        """ """
         return self.__input_args
     
     def get_output_args(self):
+        """ """
         return self.__output_args
 
     def get_secret_location_args(self):
+        """ """
         return self.__secret_location_args
 
     def get_found_secrets(self):
+        """ """
         return self.__found_secrets
     
     def get_secrets_objects(self):
+        """ """
         return_dict = {}
         for item in self.__secret_location_args:
             try:
@@ -120,9 +135,11 @@ class simple_setup:
         return return_dict
     
     def get_other_args(self):
+        """ """
         return self.__other_args
 
     def get_args(self):
+        """ """
         return {'input': self.__input_args,'output': self.__output_args,
                 'secret_location': self.__secret_location_args, 'other': self.__other_args,
                 'found_secrets': self.__found_secrets}

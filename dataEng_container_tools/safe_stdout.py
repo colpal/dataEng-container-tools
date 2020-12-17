@@ -7,6 +7,7 @@ default_gcs_secret_locations = [default_secret_folder + 'gcp-sa-storage.json']
 secrets_files = []
 
 class safe_stdout:
+    """ """
     def __init__(self, bad_words):
         self.__bad_words = {}
         for item in bad_words:
@@ -14,6 +15,14 @@ class safe_stdout:
         self.__old_stdout = sys.stdout
 
     def write(self, message):
+        """
+
+        Args:
+          message: 
+
+        Returns:
+
+        """
         message = str(message)
         for bad_word in self.__bad_words:
             bad_word_location = message.find(bad_word)
@@ -25,13 +34,30 @@ class safe_stdout:
         self.__old_stdout.write(message)
 
     def add_words(self, bad_words):
+        """
+
+        Args:
+          bad_words: 
+
+        Returns:
+
+        """
         for item in bad_words:
             self.__bad_words[item] = len(item)
 
     def flush(self):
+        """ """
         pass
 
 def setup_stdout(secret_locations):
+    """
+
+    Args:
+      secret_locations: 
+
+    Returns:
+
+    """
     bad_words = set()
     for file in secret_locations:
         try:
@@ -47,6 +73,14 @@ def setup_stdout(secret_locations):
     sys.stdout.add_words(bad_words)
 
 def setup_default_stdout(folder = default_secret_folder):
+    """
+
+    Args:
+      folder:  (Default value = default_secret_folder)
+
+    Returns:
+
+    """
     if(not os.path.exists(folder)):
         print("No secret files found in default directory")
         sys.stdout = safe_stdout([])
