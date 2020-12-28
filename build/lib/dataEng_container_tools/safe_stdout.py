@@ -6,8 +6,10 @@ default_secret_folder = '/vault/secrets/'
 default_gcs_secret_locations = [default_secret_folder + 'gcp-sa-storage.json']
 secrets_files = []
 
+
 class safe_stdout:
     """ """
+
     def __init__(self, bad_words):
         self.__bad_words = {}
         for item in bad_words:
@@ -27,8 +29,9 @@ class safe_stdout:
         for bad_word in self.__bad_words:
             bad_word_location = message.find(bad_word)
             bad_word_length = self.__bad_words[bad_word]
-            while(bad_word_location != -1):
-                message = (message[0:bad_word_location] + '*'*bad_word_length +
+            while (bad_word_location != -1):
+                message = (message[0:bad_word_location] +
+                           '*' * bad_word_length +
                            message[bad_word_location + bad_word_length:])
                 bad_word_location = message.find(bad_word)
         self.__old_stdout.write(message)
@@ -49,6 +52,7 @@ class safe_stdout:
         """ """
         pass
 
+
 def setup_stdout(secret_locations):
     """
 
@@ -61,7 +65,7 @@ def setup_stdout(secret_locations):
     bad_words = set()
     for file in secret_locations:
         try:
-            secret = json.load(open(file,'r'))
+            secret = json.load(open(file, 'r'))
         except ValueError:
             print(file, "is not a properly formatted json file.")
         these_bad_words = set(secret.values())
@@ -72,7 +76,8 @@ def setup_stdout(secret_locations):
             bad_words.add(word.encode('unicode-escape').decode())
     sys.stdout.add_words(bad_words)
 
-def setup_default_stdout(folder = default_secret_folder):
+
+def setup_default_stdout(folder=default_secret_folder):
     """
 
     Args:
@@ -81,7 +86,7 @@ def setup_default_stdout(folder = default_secret_folder):
     Returns:
 
     """
-    if(not os.path.exists(folder)):
+    if (not os.path.exists(folder)):
         print("No secret files found in default directory")
         sys.stdout = safe_stdout([])
         return
@@ -90,7 +95,7 @@ def setup_default_stdout(folder = default_secret_folder):
     print("Found these secret files:", files)
     for file in files:
         try:
-            secret = json.load(open(file,'r'))
+            secret = json.load(open(file, 'r'))
         except ValueError:
             print(file, "is not a properly formatted json file.")
         secrets_files.append(file)
