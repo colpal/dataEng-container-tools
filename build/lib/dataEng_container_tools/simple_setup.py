@@ -1,3 +1,22 @@
+"""Simplest way to interact with CLA and GCS.
+
+A simple way to get input from the command line, and download and upload documents to/from GCS.
+Fewer options than the classes above but also fewer lines of code to write. The class will
+automatically add CLA arguments based on the types of arguments passed in to the function. The goal of the
+method is for an end user to be able to use command line input without ever having to know what the command
+line input actually is. 
+
+Typical usage example:
+
+    simple = simple_setup(['input_left', 'input_right', 'output_inner', 'output_outer', 'secret_location', 'example_flag'])
+    objects = simple.get_input_objects()
+    #
+    # Edit the objects in some way here.
+    #
+    return_objs = {'output_outer': objects['input_left'], 'output_inner': objects['input_right']}
+    upload = simp.upload_objects(return_objs)
+"""
+
 from .gcs import gcs_file_io
 from .safe_stdout import default_gcs_secret_locations, default_secret_folder
 import argparse
@@ -6,9 +25,34 @@ import os
 
 
 class simple_setup:
-    """ """
+    """Simplifies GCS and CLA usage.
+    
+    Takes in a list of arguments and automatically groups them by type. It then creates the appropriate
+    Command Line Arguments for each parameter, and parses the command line input. A single method call
+    can be used to download all files that were passed in as 'input file' command line arguments, and 
+    another single method call can be used to upload a list of objects to all of the inputs corresponding
+    to output GCS locations. Parameters are grouped into the following categories:
+        input_args: any parameter containing the word 'input' is in this category. For each parameter in this
+            category, bucket, path, filename, and URI CLA arguments are created. Either the URI or the bucket,
+            path, and filename must be populated.
+        output_args: any parameter containing the word 'output' is in this category. For each parameter in this
+            category, bucket, path, filename, and URI CLA arguments are created. Either the URI or the bucket,
+            path, and filename must be populated.
+        secret_location_args: any parameter containing the words 'secret' and 'location' is in this category.
+            For each parameter in this category, one CLA is created.
+        other_args: any parameter not belonging to the previous three categories is included in this category.
+            One CLA is created for each parameter.
+        found_secrets: any secret files found in the default secrets location belong to this category. The keys
+            are the names of the files with the file extension removed and the values are the filepaths.
+    """
 
     def __init__(self, argument_names):
+        """Initializes simple_setup with desired configuration.
+
+        Args:
+            argument_names: An iterable of strings containing the names of arguments that should be used
+                to create CLAs.
+        """
         input_args = {}
         output_args = {}
         other_args = {}
@@ -104,7 +148,15 @@ class simple_setup:
         return files
 
     def get_input_objects(self):
-        """ """
+        """Returns a dictionary of input objects.
+        
+        For each object in the 'input_args' category of CLAs, downloads the object
+        from GCS and attempts to convert it to a dataframe based on the file extension.
+        If it cannot convert, returns a file-like object instead of a dataframe for that object.
+        The keys in the dictionary are the names of the input_args, and the values are the dataframes.
+        For example, if 'input_left' was passed in during init, then the key would be 'input_left' and
+        the value would be the object located in the GCS URI passed into the 'input_left' CLA.
+        """
         return_dict = {}
         for item in self.__input_args:
             return_dict[item] = self.__gcs_io.download_file_to_object(
@@ -113,13 +165,23 @@ class simple_setup:
         return return_dict
 
     def upload_objects(self, objects):
-        """
+        """Uploads a dictionary of objects to GCS.
+
+        This method uploads all the objects in the dictionary to GCS. It
+        does this by taking each key in the dictionary and using the 
+        command line input associated with that key as the GCS URI for
+        uploading. The object will be converted a file type based off the
+        file extension in the URI. For example, if 'output_outer' was passed
+        in during init, the object whose key is 'output_outer' will be uploaded
+        to whatever URI was passed in to the 'output_outer' CLA.
 
         Args:
-          objects: 
+          objects: A dictionary containing the objects to upload to GCS.
+            The keys should be strings in the 'output_args' group, and the
+            values should be dataframe objects.
 
-        Returns:
-
+        Returns: A dictionary where the keys are the same as the input
+            dictionary and the values are the results from blob.upload()
         """
         return_dict = {}
         for item in objects:
@@ -129,23 +191,64 @@ class simple_setup:
         return return_dict
 
     def get_input_args(self):
-        """ """
+        """Returns the CLA in the input_args group.
+        
+        Returns a dictionary of input_args. The keys of the dictionary are the names
+        of the input_args, and the values are the values passed into the CLA corresponding
+        to that argument. For example, if 'input_left' were passed in during init, then
+        'input_left' would be a key in the return dictionary and the value for that key would
+        be the value that was passed in through the command line. Any parameter passed in
+        during init containing the word 'input' is in this category. For each parameter in this
+        category, bucket, path, filename, and URI CLA arguments are created. Either the URI or the bucket,
+        path, and filename must be populated.
+        """
         return self.__input_args
 
     def get_output_args(self):
-        """ """
+        """Returns the CLA in the output_args group.
+        
+        Returns a dictionary of output_args. The keys of the dictionary are the names
+        of the output_args, and the values are the values passed into the CLA corresponding
+        to that argument. For example, if 'output_left' were passed in during init, then
+        'output_left' would be a key in the return dictionary and the value for that key would
+        be the value that was passed in through the command line. Any parameter passed in
+        during init containing the word 'output' is in this category. For each parameter in this
+        category, bucket, path, filename, and URI CLA arguments are created. Either the URI or the bucket,
+        path, and filename must be populated.
+        """
         return self.__output_args
 
     def get_secret_location_args(self):
-        """ """
+        """Returns the CLA in the secret_location_args group.
+        
+        Returns a dictionary of secret_location_args. The keys of the dictionary are the names
+        of the secret_location_args, and the values are the values passed into the CLA corresponding
+        to that argument. For example, if 'sap_secret_location' were passed in during init, then
+        'sap_secret_location' would be a key in the return dictionary and the value for that key would
+        be the value that was passed in through the command line. Any parameter containing the words
+        'secret' and 'location' is in this category. For each parameter in this category, one CLA is created.
+        """
         return self.__secret_location_args
 
     def get_found_secrets(self):
-        """ """
+        """Returns a dictionary of secret files found automatically.
+
+        Any secret files found in the default secrets location belong to this category. The keys
+        are the names of the files with the file extension removed and the values are the filepaths.
+        """
         return self.__found_secrets
 
-    def get_secrets_objects(self):
-        """ """
+    def get_secret_location_args_objects(self):
+        """Returns the JSON loaded secrets from the secret_location_args group.
+        
+        Returns a dictionary of JSON loaded secrets specified in secret_location_args. The keys
+        of the dictionary are the names of the secret_location_args, and the values are the
+        JSON loaded files passed into the CLA corresponding to that argument. For example, if
+        'sap_secret_location' were passed in during init, then 'sap_secret_location' would be a key in
+        the return dictionary and the value for that key would be the JSON loaded file specified
+        through the command line. Any parameter containing the words 'secret' and 'location' is
+        in this category. For each parameter in this category, one CLA is created.
+        """
         return_dict = {}
         for item in self.__secret_location_args:
             try:
@@ -154,17 +257,47 @@ class simple_setup:
                 print(self.__secret_location_args[item],
                       'is not a properly formatted JSON.')
         return return_dict
+    
+    def get_found_secret_objects(self):
+        """Returns the JSON loaded secrets from secret files found automatically.
+        
+        Returns a dictionary of JSON loaded secrets specified in the default secrets location. The keys
+        are the names of the files with the file extension removed, and the values are the
+        JSON loaded files. For example, if 'sap_secret_location.json' is found, then 'sap_secret_location'
+        would be a key in the return dictionary and the value for that key would be the JSON loaded file.
+        Any secret files found in the default secrets location belong to this category. The keys
+        are the names of the files with the file extension removed and the values are the filepaths.
+        """
+        return_dict = {}
+        for item in self.__found_secrets:
+            try:
+                return_dict[item] = json.load(self.__found_secrets[item])
+            except ValueError:
+                print(self.__found_secrets[item],
+                      'is not a properly formatted JSON.')
+        return return_dict
 
     def get_other_args(self):
-        """ """
+        """Returns a dictionary of arguments in the other_args category.
+        
+        The keys of the dictionary are the names of the parameters passed in through init, and the
+        values are the arguments passed in through the command line that correspond to those parameters.
+        Any parameter not belonging to the input_args, output_args, or secret_location_args is included
+        in this category. One CLA is created for each parameter.
+        """
         return self.__other_args
 
     def get_args(self):
-        """ """
+        """Returns a list dictionary of all arguments, broken into groups.
+        
+        The keys of the dictionary are 'input', 'output', 'secret_location_args',
+        'other', and 'found_secrets'. The values of these keys are the dictionaries
+        associated with each input grouping.
+        """
         return {
             'input': self.__input_args,
             'output': self.__output_args,
-            'secret_location': self.__secret_location_args,
+            'secret_location_args': self.__secret_location_args,
             'other': self.__other_args,
             'found_secrets': self.__found_secrets
         }

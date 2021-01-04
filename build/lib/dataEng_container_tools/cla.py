@@ -6,7 +6,7 @@ and `command_line_arguments`. `commnad_line_arguments` contains most
 of the functionality. `command_line_argument_type` is an enumeration.
 `custom_command_line_argument` is a wrapper for `parser.add_argument()`.
 
-  Typical usage example:
+Typical usage example:
 
     my_inputs = command_line_arguments(secret_locations=command_line_argument_type.OPTIONAL,
                                     input_files=command_line_argument_type.REQUIRED,
