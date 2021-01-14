@@ -63,17 +63,19 @@ class simple_setup:
         for name in argument_names:
             if "input" in name:
                 print("Input:", name)
-                parser.add_argument('--' + name, required=False)
-                parser.add_argument('--' + name + 'bucket', required=False)
-                parser.add_argument('--' + name + 'path', required=False)
-                parser.add_argument('--' + name + 'filename', required=False)
+                help = f'Location of {name} file. Either URI or bucket, path, and filename must be provided.'
+                parser.add_argument('--' + name + '_uri', required=False, help=help)
+                parser.add_argument('--' + name + '_bucket', required=False, help=help)
+                parser.add_argument('--' + name + '_path', required=False, help=help)
+                parser.add_argument('--' + name + '_filename', required=False, help=help)
                 input_args[name] = None
             elif "output" in name:
                 print("Output:", name)
-                parser.add_argument('--' + name, required=False)
-                parser.add_argument('--' + name + 'bucket', required=False)
-                parser.add_argument('--' + name + 'path', required=False)
-                parser.add_argument('--' + name + 'filename', required=False)
+                help = f'Location of {name} file. Either URI or bucket, path, and filename must be provided.'
+                parser.add_argument('--' + name + '_uri', required=False, help=help)
+                parser.add_argument('--' + name + '_bucket', required=False, help=help)
+                parser.add_argument('--' + name + '_path', required=False, help=help)
+                parser.add_argument('--' + name + '_filename', required=False, help=help)
                 output_args[name] = None
             elif 'secret' in name and 'location' in name:
                 print("Secret:", name)
