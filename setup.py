@@ -1,4 +1,4 @@
-#python3 setup.py sdist bdist_wheel
+#python setup.py sdist bdist_wheel
 import setuptools
 
 with open("README.md", "r") as fh:
@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="dataEng-container-tools",
-    version="0.3.3",
+    version="0.3.4",
     author="Alexander Saff",
     author_email="alexander_saff@colpal.com",
     description="A package containing tools for data engineering containers.",
