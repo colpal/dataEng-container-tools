@@ -15,14 +15,7 @@ setuptools.setup(
     url="https://github.com/colpal/dataEng-container-tools",
     packages=setuptools.find_packages(),
     install_requires=[
-          'argparse',
-          'json',
-          'sys',
-          'enum',
-          'os',
           'pandas',
-          'io',
-          'pickle',
           'google-cloud-storage'
     ],
     classifiers=[
