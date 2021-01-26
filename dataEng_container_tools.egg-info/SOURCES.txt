@@ -9,4 +9,5 @@ dataEng_container_tools/simple_setup.py
 dataEng_container_tools.egg-info/PKG-INFO
 dataEng_container_tools.egg-info/SOURCES.txt
 dataEng_container_tools.egg-info/dependency_links.txt
+dataEng_container_tools.egg-info/requires.txt
 dataEng_container_tools.egg-info/top_level.txt

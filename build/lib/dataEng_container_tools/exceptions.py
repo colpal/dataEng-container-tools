@@ -19,7 +19,7 @@ class No_Secrets_Found(Container_Tools_Error):
 		super().__init__(errors = self.errors, message = self.message)
 
 class Secret_Not_Found(Container_Tools_Error):
-	def __init__(self, secret_path):
+	def __init__(self, filepath):
 		self.message = f''
 		super().__init__(errors = self.errors, message = self.message)
 
@@ -30,7 +30,7 @@ class Argument_Mismatch(Container_Tools_Error):
 		super().__init__(errors = self.errors, message = self.message)
 
 class GCs_Secret_Rejected(Container_Tools_Error):
-	def __init__(self, secret):
+	def __init__(self, secret, project):
 		self.message = f'Rejected'
 		super().__init__(errors = self.errors, message = self.message)
 
@@ -38,9 +38,3 @@ class GCS_Secret_Mismatch(Container_Tools_Error):
 	def __init__(self, secret, URI):
 		self.message = f'Rejected'
 		super().__init__(errors = self.errors, message = self.message)
-
-
-try:
-	1/0
-except Exception as e:
-	raise Container_Tools_Error()
