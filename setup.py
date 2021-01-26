@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="dataEng-container-tools",
-    version="0.3.4",
+    version="0.3.5",
     author="Alexander Saff",
     author_email="alexander_saff@colpal.com",
     description="A package containing tools for data engineering containers.",
@@ -14,6 +14,17 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/colpal/dataEng-container-tools",
     packages=setuptools.find_packages(),
+    install_requires=[
+          'argparse',
+          'json',
+          'sys',
+          'enum',
+          'os',
+          'pandas',
+          'io',
+          'pickle',
+          'google-cloud-storage'
+    ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
