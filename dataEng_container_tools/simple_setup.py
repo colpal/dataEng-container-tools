@@ -34,6 +34,8 @@ class simple_setup:
                 print("Other:", name)
                 parser.add_argument('--'+name, required=True)
                 other_args[name] = None
+        parser.add_argument('--local', required=False, default=False, type=bool)
+        other_args['local'] = None
         args = parser.parse_args()
         for arg in input_args:
             if args.__dict__[arg] is not None:
@@ -56,7 +58,7 @@ class simple_setup:
         self.__secret_args = secret_args
         self.__other_args = other_args
         print(self.get_args())
-        self.__gcs_io = gcs_file_io(gcs_secret_location = gcs_secret_location)
+        self.__gcs_io = gcs_file_io(gcs_secret_location = gcs_secret_location, local=self.__other_args['local'])
 
     def get_input_objects(self):
         return_dict = {}
