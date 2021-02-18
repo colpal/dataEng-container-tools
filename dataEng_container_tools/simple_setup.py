@@ -1,6 +1,7 @@
 from .gcs import gcs_file_io
 from .safe_stdout import default_gcs_secret_locations
 import argparse
+import json
 
 class simple_setup:
     def __init__(self, argument_names):
@@ -81,6 +82,12 @@ class simple_setup:
     
     def get_other_args(self):
         return self.__other_args
+
+    def get_secrets(self):
+        loaded_secrets = {}
+        for secret in self.__secret_args:
+            loaded_secrets[secret] = json.load(open(self.__secret_args[secret], 'r'))
+        return loaded_secrets
 
     def get_args(self):
         return {'input': self.__input_args, 'output': self.__output_args, 'secret': self.__secret_args, 'other': self.__other_args}
