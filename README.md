@@ -128,5 +128,5 @@ objects = simple.get_input_objects()
 # Edit the objects in some way here.
 #
 return_objs = {'output_outer': objects['input_left'], 'output_inner': objects['input_right']}
-upload = simp.upload_objects(return_objs)
+upload = simple.upload_objects(return_objs)
 ```
