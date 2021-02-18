@@ -12,11 +12,12 @@ class gcs_file_io:
     def __init__(self, gcs_secret_location, local = False):
         self.gcs_secret_location = gcs_secret_location
         self.local = local
-        with open(gcs_secret_location,'r') as f:
-            gcs_sa = json.load(f)
-        with open('gcs-sa.json', 'w') as json_file:
-            json.dump(gcs_sa, json_file)
-        self.gcs_client = storage.Client.from_service_account_json('gcs-sa.json')
+        if not local:
+            with open(gcs_secret_location,'r') as f:
+                gcs_sa = json.load(f)
+            with open('gcs-sa.json', 'w') as json_file:
+                json.dump(gcs_sa, json_file)
+            self.gcs_client = storage.Client.from_service_account_json('gcs-sa.json')
 
     def __get_parts(self, gcs_uri):
         if gcs_uri.startswith('gs://'):
