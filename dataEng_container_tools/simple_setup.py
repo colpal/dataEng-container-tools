@@ -140,7 +140,7 @@ class simple_setup:
     def __find_secrets(self):
         if (not os.path.exists(default_secret_folder)):
             print("No secret files found in default directory")
-            return
+            return []
         files = [
             os.path.join(dp, f)
             for dp, dn, fn in os.walk(default_secret_folder)
