@@ -122,7 +122,7 @@ def setup_default_stdout(folder=default_secret_folder):
         the value is the  default_secret_folder global variable declared in this file.
     """
     if (not os.path.exists(folder)):
-        print("No secret files found in default directory")
+        print("[WARNING] No secret files found in default directory. This is normal when running locally.")
         sys.stdout = safe_stdout([])
         return
     bad_words = set()
