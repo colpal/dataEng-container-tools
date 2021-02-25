@@ -274,7 +274,7 @@ class command_line_arguments:
                                 help="The pod name")
         if custom_inputs:
             for item in custom_inputs:
-                parser.add_argument(name="--" + item.name,
+                parser.add_argument("--" + item.name,
                                     action=item.action,
                                     nargs=item.nargs,
                                     const=item.const,
