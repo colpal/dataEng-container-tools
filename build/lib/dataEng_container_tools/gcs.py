@@ -19,6 +19,7 @@ import io
 from google.cloud import storage
 import pickle
 import os
+import logging
 
 
 class gcs_file_io:
@@ -39,6 +40,7 @@ class gcs_file_io:
     """
     gcs_client = None
     gcs_secret_location = None
+    local = None
 
     def __init__(self, gcs_secret_location, local=False):
         """Initializes gcs_file_io with desired configuration.
@@ -46,12 +48,13 @@ class gcs_file_io:
         Args:
             gcs_secret_location: Required. The location of the secret file
                 needed for GCS.
-            running_local: Optional. Defaults to False. If True, no contact
+            local: Optional. Defaults to False. If True, no contact
                 will be made with GCS.
         """
+        self.local = local
+
         if not local:
             self.gcs_secret_location = gcs_secret_location
-            self.local = local
             with open(gcs_secret_location, 'r') as f:
                 gcs_sa = json.load(f)
             with open('gcs-sa.json', 'w') as json_file:
@@ -81,7 +84,8 @@ class gcs_file_io:
                                 gcs_uri,
                                 default_file_type=None,
                                 dtype=None,
-                                delimiter=None):
+                                delimiter=None,
+                                encoding='utf-8'):
         """Downloads a file from GCS to an object in memory.
 
         Args:
@@ -90,12 +94,12 @@ class gcs_file_io:
             default_file_type: Optional. Defaults to None. If the uri the object does not have a
                  file type ending, it will be assumed to be this type.
             dtype: Optional. Defaults to None. A dictionary of (column: type) pairs.
+            delimiter: Optional. Defaults to None. delimiter of the file
+            encoding: Optional. Defaults to utf-8. encoding of the file
 
         Returns:
             A dataframe if the object format can be inferred, otherwise a file-like object.
         """
-        file_path = None
-        file_like_object = None
         if self.local:
             file_path = gcs_uri
             file_like_object = open(gcs_uri)
@@ -117,13 +121,13 @@ class gcs_file_io:
                                           (default_file_type == 'csv')):
             return pd.read_csv(file_like_object,
                                dtype=dtype,
-                               delimiter=delimiter) if dtype else pd.read_csv(
-                                   file_like_object, delimiter=delimiter)
+                               delimiter=delimiter, encoding=encoding) if dtype else pd.read_csv(
+                                    file_like_object, delimiter=delimiter, encoding=encoding)
         if file_path.endswith('.pkl') or ((not hasEnding) and
                                           (default_file_type == 'pkl')):
             return pd.read_pickle(
                 file_like_object) if dtype else pd.read_pickle(
-                    file_like_object)  #, dtype = dtype
+                file_like_object)  # , dtype = dtype
         if file_path.endswith('.json') or ((not hasEnding) and
                                            (default_file_type == 'json')):
             return json.load(file_like_object)
@@ -133,16 +137,18 @@ class gcs_file_io:
                                   gcs_uris,
                                   default_file_type=None,
                                   dtypes=[],
-                                  delimiters=[]):
+                                  delimiters=[],
+                                  encodings=[]):
         """Downloads files from GCS to an objects in memory.
 
-        Args:  
+        Args:
             gcs_uris: Required. The uris of the objects in GCS to download. If running_local
                 is True, it is the paths to local files that will be read into objects.
             default_file_type: Optional. Defaults to None. A string. If the uri an object does
                 not have a file type ending, it will be assumed to be this type.
             dtypes: Optional. Defaults to empty list. A list of dictionaries of (column: type) pairs.
-
+            delimiters: Optional. Defaults to empty list. A list of delimiters of the files
+            encodings: Optional. Defaults to empty list. A list of encodings of the file
 
         Returns:
             A list of dataframes and/or file-like objects. If the object format can be inferred it will
@@ -152,6 +158,7 @@ class gcs_file_io:
         for pos, gcs_uri in enumerate(gcs_uris):
             dt = None
             delim = None
+            encod = 'utf-8'
             if len(dtypes) == 1:
                 dt = dtypes[0]
             elif len(dtypes) > 1:
@@ -160,18 +167,23 @@ class gcs_file_io:
                 delim = delimiters[0]
             elif len(delimiters) > 1:
                 delim = delimiters[pos]
+            if len(encodings) == 1:
+                encod = encodings[0]
+            elif len(encodings) > 1:
+                encod = encodings[pos]
             return_objects.append(
                 self.download_file_to_object(
                     gcs_uri,
                     default_file_type=default_file_type,
                     dtype=dt,
-                    delimiter=delim))
+                    delimiter=delim,
+                    encoding=encod))
         return return_objects
 
     def download_file_to_disk(self, gcs_uri, local_location=None):
         """Downloads a file from GCS to the container's disk.
 
-        Args:        
+        Args:
         gcs_uri: Required. The uri of the object in GCS to download. If
             running_local is True, it is the path to a local file that will be
             copied to local_location.
@@ -196,7 +208,7 @@ class gcs_file_io:
     def download_files_to_disk(self, gcs_uris, local_locations=[]):
         """Downloads files from GCS to the container's disk.
 
-        Args:        
+        Args:
             gcs_uris: Required. The uris of the objects in GCS to download. If
                 running_local is True, it is the paths to local files that will be
                 copied to local_locations.
@@ -289,7 +301,7 @@ class gcs_file_io:
                                 metadata={}):
         """Uploads a file to GCS from an object in memory.
 
-        Args:    
+        Args:
             gcs_uri: Required. The uri to which the object will be uploaded. If running_local
                 is True, it is the path to a local file where the object will be written.
             default_file_type: Optional. Defaults to None. If the uri does not have a file type
@@ -311,13 +323,14 @@ class gcs_file_io:
             metadata['POD_NAME'] = os.environ['POD_NAME']
         if 'GITHUB_SHA' in os.environ.keys():
             metadata['git_hash'] = os.environ['GITHUB_SHA']
-        file_path = None
         blob = None
         if not self.local:
             bucket_name, file_path = self.__get_parts(gcs_uri)
             bucket = self.gcs_client.bucket(bucket_name)
             blob = bucket.blob(file_path)
             blob.metadata = metadata
+        else:
+            file_path = gcs_uri
         hasEnding = file_path.endswith('.parquet') or file_path.endswith(
             '.csv') or file_path.endswith('.pkl')
         if file_path.endswith('.parquet') or ((not hasEnding) and
@@ -331,8 +344,8 @@ class gcs_file_io:
         if file_path.endswith('.csv') or ((not hasEnding) and
                                           (default_file_type == 'csv')):
             if self.local:
-                return object_to_upload.to_csv(gcs_uri)
-            csv_string = object_to_upload.to_csv(encoding='utf-8')
+                return object_to_upload.to_csv(gcs_uri, index=False)
+            csv_string = object_to_upload.to_csv(encoding='utf-8', index=False)
             return blob.upload_from_string(csv_string)
         if file_path.endswith('.pkl') or ((not hasEnding) and
                                           (default_file_type == 'pkl')):
