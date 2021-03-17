@@ -88,7 +88,7 @@ class gcs_file_io:
         """Downloads a file from GCS to an object in memory.
 
         Args:
-            gcs_uri: Required. The uri of the object in GCS to download. If running_local is
+            gcs_uri: Required. The uri of the object in GCS to download. If local is
                 True, it is the path to a local file that will be read into an object.
             default_file_type: Optional. Defaults to None. If the uri the object does not have a
                  file type ending, it will be assumed to be this type.
@@ -141,7 +141,7 @@ class gcs_file_io:
         """Downloads files from GCS to an objects in memory.
 
         Args:
-            gcs_uris: Required. The uris of the objects in GCS to download. If running_local
+            gcs_uris: Required. The uris of the objects in GCS to download. If local
                 is True, it is the paths to local files that will be read into objects.
             default_file_type: Optional. Defaults to None. A string. If the uri an object does
                 not have a file type ending, it will be assumed to be this type.
@@ -184,7 +184,7 @@ class gcs_file_io:
 
         Args:
         gcs_uri: Required. The uri of the object in GCS to download. If
-            running_local is True, it is the path to a local file that will be
+            local is True, it is the path to a local file that will be
             copied to local_location.
         local_location: Optional. Defaults to None. Where to save the object.
             If None, saves to same path as the the GCS URI.
@@ -209,7 +209,7 @@ class gcs_file_io:
 
         Args:
             gcs_uris: Required. The uris of the objects in GCS to download. If
-                running_local is True, it is the paths to local files that will be
+                local is True, it is the paths to local files that will be
                 copied to local_locations.
             local_locations: Optional. Defaults to empty list. The locations to save
                 the objects. If empty, saves to same paths as the the GCS URIs.
@@ -232,7 +232,7 @@ class gcs_file_io:
         """Uploads a file to GCS from the container's hard drive.
 
         Args:
-            gcs_uri: Required. The uri to which the object will be uploaded. If running_local is
+            gcs_uri: Required. The uri to which the object will be uploaded. If local is
                 True, it is the path to a local file that will be copied from local_location.
             local_location: Optional. Defaults to None. The location of the object. If None, assumes
                 the same path as the the GCS URI.
@@ -266,7 +266,7 @@ class gcs_file_io:
         """Uploads files to GCS from the container's hard drive.
 
         Args:
-            gcs_uris: Required. The uris to which the objects will be uploaded. If running_local
+            gcs_uris: Required. The uris to which the objects will be uploaded. If local
                 is True, it is the paths to local files that will be copied from local_locations.
             local_locations: Optional. Defaults to None. The locations of the objects. If None,
                 assumes the same paths as the the GCS URIs.
@@ -301,7 +301,7 @@ class gcs_file_io:
         """Uploads a file to GCS from an object in memory.
 
         Args:
-            gcs_uri: Required. The uri to which the object will be uploaded. If running_local
+            gcs_uri: Required. The uri to which the object will be uploaded. If local
                 is True, it is the path to a local file where the object will be written.
             default_file_type: Optional. Defaults to None. If the uri does not have a file type
                 ending, it will be assumed to be this type.
@@ -374,7 +374,7 @@ class gcs_file_io:
 
         Args:
             gcs_uris: Required. The uris to which the objects will be uploaded. If
-                running_local is True, it is the paths to local files where the objects will be written.
+                local is True, it is the paths to local files where the objects will be written.
             default_file_type: Optional. Defaults to None. A sting. If the uri an object does not
                 have a file type ending, it will be assumed to be this type.
             dtypes: Optional. Defaults to None. A list of dictionary of (column: type) pairs.
