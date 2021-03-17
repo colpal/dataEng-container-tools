@@ -47,15 +47,7 @@ class Db:
     def __init__(self, task_kind):
         self.current_task_kind = task_kind
 
-    def get_datastore_client(self, credentials):
-        """
-        get_datastore_client method return the data store client
-        :param credentials: gcs auth credential to get data store client
-        :return: data store client
-        """
-        return datastore.Client(credentials=credentials)
-
-    def get_gcs_data_store_client(self, PATH):
+    def get_data_store_client(self, PATH):
         """
         this function creates and return gcs client
         :return: gcs client
