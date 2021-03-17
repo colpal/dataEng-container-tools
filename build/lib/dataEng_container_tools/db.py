@@ -3,12 +3,47 @@ import logging
 import os
 from operator import itemgetter
 from google.cloud import datastore
+import json
+
+
+def get_secrets(path_):
+    """
+    get secrets from vault mounted json file
+    :param path_: path to credentails file
+    :return:dict_
+    """
+    default_key = ['key']
+    default_key.sort()
+    try:
+        if not os.path.exists(path_):
+            raise logging.exception("No credential file "
+                                    "found in path {}".format(path_))
+
+        with open(path_) as fp:
+            dict_ = json.load(fp)
+        obj = {
+            "key": json.dumps(dict_)
+        }
+        gcs_keys = list(obj.keys())
+        gcs_keys.sort()
+        if gcs_keys != default_key:
+            raise logging.exception("Needed credentials keys: {}"
+                                    " but found keys: {}".format(default_key,
+                                                                 gcs_keys))
+        return obj
+
+    except json.JSONDecodeError:
+        raise logging.exception("Invalid json format"
+                                " for credential")
+    except Exception as e:
+        raise e
 
 
 class Db:
     """
     This class handle all the datastore operation
     """
+
     def __init__(self, task_kind):
         self.current_task_kind = task_kind
 
@@ -19,6 +54,22 @@ class Db:
         :return: data store client
         """
         return datastore.Client(credentials=credentials)
+
+    def get_gcs_data_store_client(self, PATH):
+        """
+        this function creates and return gcs client
+        :return: gcs client
+        """
+        try:
+            cred = get_secrets(PATH)
+            key = cred["key"]
+        except KeyError as ke:
+            raise logging.exception("Storage credentials not"
+                                    " mounted for gcs ")
+        gcs_sa = json.loads(key)
+        with open('gcs-sa.json', 'w') as json_file:
+            json.dump(gcs_sa, json_file)
+        return datastore.Client.from_service_account_json('gcs-sa.json')
 
     @staticmethod
     def get_task_entry(client, filter_map, kind, order_task_entries_params=None):
@@ -76,7 +127,8 @@ class Db:
             "run_id": params['run_id'],
             'airflow_task_id': params['airflow_task_id']
         }
-        existing_entries = self.get_task_entry(client, filter_entries, self.current_task_kind, order_task_entries_params)
+        existing_entries = self.get_task_entry(client, filter_entries, self.current_task_kind,
+                                               order_task_entries_params)
 
         if len(existing_entries) > 0:
             task_entry = existing_entries[0]

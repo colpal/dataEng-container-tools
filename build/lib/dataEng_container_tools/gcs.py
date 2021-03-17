@@ -19,7 +19,6 @@ import io
 from google.cloud import storage
 import pickle
 import os
-import logging
 
 
 class gcs_file_io:
