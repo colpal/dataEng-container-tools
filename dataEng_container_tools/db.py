@@ -9,7 +9,7 @@ import json
 def get_secrets(path_):
     """
     get secrets from vault mounted json file
-    :param path_: path to credentails file
+    :param path_: path to credentials file
     :return:dict_
     """
     default_key = ['key']
@@ -49,8 +49,8 @@ class Db:
 
     def get_data_store_client(self, PATH):
         """
-        this function creates and return gcs client
-        :return: gcs client
+        this function creates and return datastore client
+        :return: datastore client
         """
         try:
             cred = get_secrets(PATH)
@@ -86,10 +86,10 @@ class Db:
 
     def put_snapshot_task_entry(self, client, task_entry, params):
         """
-        put_snapshot_task_entry is used to store the entry for each merge report task
+        put_snapshot_task_entry is used to store the entry for the task
         :param client: datastore client
         :param task_entry: Entity which store actual instance of data
-        :param params: dictionary containing all the parameters(key-value) to be stored
+        :param params: dictionary containing all the parameters(key-value pairs) to be stored
         :return:
         """
         for key in params.keys():
@@ -99,13 +99,13 @@ class Db:
         logging.info(task_entry)
         client.put(task_entry)
 
-    def handle_task(self, client, params, order_task_entries_params):
+    def handle_task(self, client, params, order_task_entries_params=None):
         """
         it's used to check if the task instance for the given param is available or not.
         If task instance is already present then it will update the existing instance else
         create a new instance and store it to given Entity.
         :param client: datastore client
-        :param params: dictionary containing all the required parameters(key-value)
+        :param params: dictionary containing all the parameters(key-value pairs) to be stored
         :param order_task_entries_params: parameters to order the task entries if required
         :return:
         """
