@@ -1,4 +1,4 @@
-#python3 setup.py sdist bdist_wheel
+#python setup.py sdist bdist_wheel
 import setuptools
 
 with open("README.md", "r") as fh:
@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="dataEng-container-tools",
-    version="0.2.0",
+    version="0.4.0",
     author="Alexander Saff",
     author_email="alexander_saff@colpal.com",
     description="A package containing tools for data engineering containers.",
@@ -14,6 +14,10 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/colpal/dataEng-container-tools",
     packages=setuptools.find_packages(),
+    install_requires=[
+          'pandas',
+          'google-cloud-storage'
+    ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
