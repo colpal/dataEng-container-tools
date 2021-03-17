@@ -51,7 +51,6 @@ class gcs_file_io:
                 will be made with GCS.
         """
         self.local = local
-
         if not local:
             self.gcs_secret_location = gcs_secret_location
             with open(gcs_secret_location, 'r') as f:

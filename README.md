@@ -157,6 +157,7 @@ input_right_object = objects['input_right']
 #
 # Edit the objects in some way here.
 #
+
 return_objs = {'output_outer': output_outer_object, 'output_inner': output_inner_object}
 upload = simple.upload_objects(return_objs)
 ```
