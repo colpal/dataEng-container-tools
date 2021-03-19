@@ -96,7 +96,6 @@ class Db:
             task_entry[key] = params[key]
 
         task_entry['kind'] = self.current_task_kind
-
         task_entry['modified_at'] = datetime.datetime.utcnow()
         logging.info(task_entry)
         client.put(task_entry)
