@@ -201,6 +201,7 @@ class StorageError(Container_Tools_Error):
         self.message = message
         super().__init__(message=self.message)
 
+
 class InvalidDagParameters(Container_Tools_Error):
     """
 	Dag parameters not provided as expected
@@ -225,7 +226,7 @@ exception_dict = {
     StorageInvalidCredential.__name__: "success",
     InvalidJobConfig.__name__: "failure",
     StorageError.__name__: "success",
-	InvalidDagParameters.__name__: "failure",
+    InvalidDagParameters.__name__: "failure",
     Exception.__name__: "failure"
 }
 
