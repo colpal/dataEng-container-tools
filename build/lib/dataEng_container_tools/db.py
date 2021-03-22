@@ -112,7 +112,7 @@ class Db:
             params['exceptions'] = exception_list
             params['exception_details'] = exception_details_list
             params['status'] = "failure"
-            self.db.handle_task(client, params, order_task_entries_params)
+            self.handle_task(client, params, order_task_entries_params)
             raise ex_
 
     def put_snapshot_task_entry(self, client, task_entry, params):
