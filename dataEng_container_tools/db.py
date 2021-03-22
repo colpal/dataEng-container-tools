@@ -48,7 +48,6 @@ class Db:
 
     def __init__(self, task_kind):
         self.current_task_kind = task_kind
-        self.db = Db(self.current_task_kind)
 
     def get_data_store_client(self, PATH):
         """
@@ -90,8 +89,8 @@ class Db:
         except Exception as ex_:
             exception_list = []
             exception_details_list = []
-            report_entries = self.db.get_task_entry(client, filter_map,
-                                                    self.current_task_kind, order_task_entries_params)
+            report_entries = self.get_task_entry(client, filter_map,
+                                                 self.current_task_kind, order_task_entries_params)
             logging.info("no of report_entries ={} ".format(report_entries))
 
             if len(report_entries) != 0:
