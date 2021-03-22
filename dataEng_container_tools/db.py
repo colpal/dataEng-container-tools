@@ -71,7 +71,6 @@ class Db:
         :param kind: kind to query on
         :param filter_map: filter map (dictionary)
         :param client: data store client
-        :param params: parameters to store
         :param order_task_entries_params: json object containing two keys
                                            'order_by_key_list'-list of parameters to order the task entries
                                            'descending_order'- True/False
