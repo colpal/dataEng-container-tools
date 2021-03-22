@@ -89,7 +89,7 @@ class Db:
         except Exception as ex_:
             exception_list = []
             exception_details_list = []
-            report_entries = self.get_task_entry(client, filter_map,
+            report_entries = self.get_task_entry(client, params, filter_map,
                                                  self.current_task_kind, order_task_entries_params)
             logging.info("no of report_entries ={} ".format(report_entries))
 
@@ -150,7 +150,7 @@ class Db:
             "run_id": params['run_id'],
             'airflow_task_id': params['airflow_task_id']
         }
-        existing_entries = self.get_task_entry(client, filter_entries, self.current_task_kind,
+        existing_entries = self.get_task_entry(client, params, filter_entries, self.current_task_kind,
                                                order_task_entries_params)
 
         if len(existing_entries) > 0:
