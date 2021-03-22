@@ -4,6 +4,8 @@ import os
 from operator import itemgetter
 from google.cloud import datastore
 import json
+import traceback
+from dataEng_container_tools.exceptions import StorageFileNotFound, StorageNotReachable
 
 
 def get_secrets(path_):
@@ -46,6 +48,7 @@ class Db:
 
     def __init__(self, task_kind):
         self.current_task_kind = task_kind
+        self.db = Db(self.current_task_kind)
 
     def get_data_store_client(self, PATH):
         """
@@ -63,26 +66,55 @@ class Db:
             json.dump(gcs_sa, json_file)
         return datastore.Client.from_service_account_json('gcs-sa.json')
 
-    @staticmethod
-    def get_task_entry(client, filter_map, kind, order_task_entries_params=None):
+    def get_task_entry(self, client, params, filter_map, kind, order_task_entries_params=None):
         """
         get_task_entry is used to query the entry for task
         :param kind: kind to query on
         :param filter_map: filter map (dictionary)
         :param client: data store client
+        :param params: parameters to store
         :param order_task_entries_params: json object containing two keys
                                            'order_by_key_list'-list of parameters to order the task entries
                                            'descending_order'- True/False
         :return: list of the entry
         """
-        query = client.query(kind=kind)
-        for key in filter_map.keys():
-            query.add_filter(key, '=', filter_map[key])
-        entries = list(query.fetch())
-        if order_task_entries_params is not None:
-            entries = sorted(entries, key=itemgetter(*order_task_entries_params['order_by_key_list']),
-                             reverse=order_task_entries_params['descending_order'])
-        return entries
+        try:
+            query = client.query(kind=kind)
+            for key in filter_map.keys():
+                query.add_filter(key, '=', filter_map[key])
+            entries = list(query.fetch())
+            if order_task_entries_params is not None:
+                entries = sorted(entries, key=itemgetter(*order_task_entries_params['order_by_key_list']),
+                                 reverse=order_task_entries_params['descending_order'])
+            return entries
+        except Exception as ex_:
+            exception_list = []
+            exception_details_list = []
+            report_entries = self.db.get_task_entry(client, filter_map,
+                                                    self.current_task_kind, order_task_entries_params)
+            logging.info("no of report_entries ={} ".format(report_entries))
+
+            if len(report_entries) != 0:
+                report_entry = report_entries[0]
+                exception_list = report_entry['exceptions']
+                exception_details_list = report_entry['exception_details']
+            if ex_.__class__.__name__ == StorageFileNotFound.__name__:
+                ex_ = StorageFileNotFound("File not found in GCS")
+            elif ex_.__class__.__name__ == StorageNotReachable.__name__:
+                ex_ = StorageNotReachable("Storage Not reachable")
+            logging.exception(ex_)
+            exception = '{}:{}'.format(ex_.__class__.__name__, str(ex_))
+            trace_msg = datastore.Entity(exclude_from_indexes=('stacktrace',))
+            trace_msg['stacktrace'] = traceback.format_exc()
+            trace_msg['timestamp'] = datetime.datetime.utcnow()
+            exception_list.append(exception)
+            exception_details_list.append(trace_msg)
+
+            params['exceptions'] = exception_list
+            params['exception_details'] = exception_details_list
+            params['status'] = "failure"
+            self.db.handle_task(client, params, order_task_entries_params)
+            raise ex_
 
     def put_snapshot_task_entry(self, client, task_entry, params):
         """
@@ -95,7 +127,6 @@ class Db:
         for key in params.keys():
             task_entry[key] = params[key]
 
-        task_entry['kind'] = self.current_task_kind
         task_entry['modified_at'] = datetime.datetime.utcnow()
         logging.info(task_entry)
         client.put(task_entry)
