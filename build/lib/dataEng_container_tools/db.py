@@ -65,7 +65,7 @@ class Db:
             json.dump(gcs_sa, json_file)
         return datastore.Client.from_service_account_json('gcs-sa.json')
 
-    def get_task_entry(self, client, params, filter_map, kind, order_task_entries_params=None):
+    def get_task_entry(self, client, filter_map, kind, order_task_entries_params=None):
         """
         get_task_entry is used to query the entry for task
         :param kind: kind to query on
@@ -87,32 +87,7 @@ class Db:
                                  reverse=order_task_entries_params['descending_order'])
             return entries
         except Exception as ex_:
-            exception_list = []
-            exception_details_list = []
-            report_entries = self.get_task_entry(client, params, filter_map,
-                                                 self.current_task_kind, order_task_entries_params)
-            logging.info("no of report_entries ={} ".format(report_entries))
-
-            if len(report_entries) != 0:
-                report_entry = report_entries[0]
-                exception_list = report_entry['exceptions']
-                exception_details_list = report_entry['exception_details']
-            if ex_.__class__.__name__ == StorageFileNotFound.__name__:
-                ex_ = StorageFileNotFound("File not found in GCS")
-            elif ex_.__class__.__name__ == StorageNotReachable.__name__:
-                ex_ = StorageNotReachable("Storage Not reachable")
-            logging.exception(ex_)
-            exception = '{}:{}'.format(ex_.__class__.__name__, str(ex_))
-            trace_msg = datastore.Entity(exclude_from_indexes=('stacktrace',))
-            trace_msg['stacktrace'] = traceback.format_exc()
-            trace_msg['timestamp'] = datetime.datetime.utcnow()
-            exception_list.append(exception)
-            exception_details_list.append(trace_msg)
-
-            params['exceptions'] = exception_list
-            params['exception_details'] = exception_details_list
-            params['status'] = "failure"
-            self.handle_task(client, params, order_task_entries_params)
+            logging.exception("Exception while getting task entry")
             raise ex_
 
     def put_snapshot_task_entry(self, client, task_entry, params):
@@ -150,7 +125,7 @@ class Db:
             "run_id": params['run_id'],
             'airflow_task_id': params['airflow_task_id']
         }
-        existing_entries = self.get_task_entry(client, params, filter_entries, self.current_task_kind,
+        existing_entries = self.get_task_entry(client, filter_entries, self.current_task_kind,
                                                order_task_entries_params)
 
         if len(existing_entries) > 0:
