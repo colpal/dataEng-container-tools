@@ -110,7 +110,7 @@ class gcs_file_io:
             binary_object = bucket.blob(file_path).download_as_string()
             file_like_object = io.BytesIO(binary_object)
         hasEnding = file_path.endswith('.parquet') or file_path.endswith(
-            '.csv') or file_path.endswith('.pkl')
+            '.csv') or file_path.endswith('.pkl') or file_path.endswith('.xlsx')
         if file_path.endswith('.parquet') or ((not hasEnding) and
                                               (default_file_type == 'parquet')):
             return pd.read_parquet(
@@ -121,7 +121,10 @@ class gcs_file_io:
             return pd.read_csv(file_like_object,
                                dtype=dtype,
                                delimiter=delimiter, encoding=encoding) if dtype else pd.read_csv(
-                                    file_like_object, delimiter=delimiter, encoding=encoding)
+                file_like_object, delimiter=delimiter, encoding=encoding)
+        if file_path.endswith('.xlsx') or ((not hasEnding) and
+                                           (default_file_type == 'xlsx')):
+            return pd.read_excel(file_like_object, dtype=dtype) if dtype else pd.read_csv(file_like_object)
         if file_path.endswith('.pkl') or ((not hasEnding) and
                                           (default_file_type == 'pkl')):
             return pd.read_pickle(
@@ -346,6 +349,14 @@ class gcs_file_io:
                 return object_to_upload.to_csv(gcs_uri, index=False)
             csv_string = object_to_upload.to_csv(encoding='utf-8', index=False)
             return blob.upload_from_string(csv_string)
+        if file_path.endswith('.xlsx') or ((not hasEnding) and
+                                          (default_file_type == 'xlsx')):
+            if self.local:
+                return object_to_upload.to_excel(gcs_uri, index=False)
+            fileObject = io.BytesIO()
+            object_to_upload.to_excel(fileObject, index=False)
+            fileObject.seek(0)
+            return blob.upload_from_file(fileObject)
         if file_path.endswith('.pkl') or ((not hasEnding) and
                                           (default_file_type == 'pkl')):
             if self.local:
