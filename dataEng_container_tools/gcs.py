@@ -110,7 +110,7 @@ class gcs_file_io:
             binary_object = bucket.blob(file_path).download_as_string()
             file_like_object = io.BytesIO(binary_object)
         hasEnding = file_path.endswith('.parquet') or file_path.endswith(
-            '.csv') or file_path.endswith('.pkl')
+            '.csv') or file_path.endswith('.pkl') or file_path.endswith('.xlsx')
         if file_path.endswith('.parquet') or ((not hasEnding) and
                                               (default_file_type == 'parquet')):
             return pd.read_parquet(
@@ -122,9 +122,9 @@ class gcs_file_io:
                                dtype=dtype,
                                delimiter=delimiter, encoding=encoding) if dtype else pd.read_csv(
                 file_like_object, delimiter=delimiter, encoding=encoding)
-        # if file_path.endswith('.xlsx') or ((not hasEnding) and
-        #                                    (default_file_type == 'xlsx')):
-        #     return pd.read_excel(file_like_object, dtype=dtype) if dtype else pd.read_csv(file_like_object)
+        if file_path.endswith('.xlsx') or ((not hasEnding) and
+                                           (default_file_type == 'xlsx')):
+            return pd.read_excel(file_like_object, dtype=dtype) if dtype else pd.read_excel(file_like_object)
         if file_path.endswith('.pkl') or ((not hasEnding) and
                                           (default_file_type == 'pkl')):
             return pd.read_pickle(
