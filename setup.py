@@ -16,7 +16,8 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=[
           'pandas',
-          'google-cloud-storage'
+          'google-cloud-storage',
+          'openpyxl'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
