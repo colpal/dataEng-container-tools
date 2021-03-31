@@ -124,7 +124,8 @@ class gcs_file_io:
                 file_like_object, delimiter=delimiter, encoding=encoding)
         if file_path.endswith('.xlsx') or ((not hasEnding) and
                                            (default_file_type == 'xlsx')):
-            return pd.read_excel(file_path, dtype=dtype, engine='openpyxl') if dtype else pd.read_excel(file_path, engine='openpyxl')
+            return pd.read_excel(file_path, dtype=dtype, engine='openpyxl') if dtype else pd.read_excel(file_path,
+                                                                                                        engine='openpyxl')
         if file_path.endswith('.pkl') or ((not hasEnding) and
                                           (default_file_type == 'pkl')):
             return pd.read_pickle(
@@ -350,7 +351,7 @@ class gcs_file_io:
             csv_string = object_to_upload.to_csv(encoding='utf-8', index=False)
             return blob.upload_from_string(csv_string)
         if file_path.endswith('.xlsx') or ((not hasEnding) and
-                                          (default_file_type == 'xlsx')):
+                                           (default_file_type == 'xlsx')):
             if self.local:
                 return object_to_upload.to_excel(gcs_uri, index=False)
             fileObject = io.BytesIO()
