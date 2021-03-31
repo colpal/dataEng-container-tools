@@ -334,7 +334,7 @@ class gcs_file_io:
         else:
             file_path = gcs_uri
         hasEnding = file_path.endswith('.parquet') or file_path.endswith(
-            '.csv') or file_path.endswith('.pkl')
+            '.csv') or file_path.endswith('.pkl') or file_path.endswith('.xlsx')
         if file_path.endswith('.parquet') or ((not hasEnding) and
                                               (default_file_type == 'parquet')):
             if self.local:
