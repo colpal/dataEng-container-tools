@@ -122,9 +122,9 @@ class gcs_file_io:
                                dtype=dtype,
                                delimiter=delimiter, encoding=encoding) if dtype else pd.read_csv(
                 file_like_object, delimiter=delimiter, encoding=encoding)
-        if file_path.endswith('.xlsx') or ((not hasEnding) and
-                                           (default_file_type == 'xlsx')):
-            return pd.read_excel(file_like_object, dtype=dtype) if dtype else pd.read_csv(file_like_object)
+        # if file_path.endswith('.xlsx') or ((not hasEnding) and
+        #                                    (default_file_type == 'xlsx')):
+        #     return pd.read_excel(file_like_object, dtype=dtype) if dtype else pd.read_csv(file_like_object)
         if file_path.endswith('.pkl') or ((not hasEnding) and
                                           (default_file_type == 'pkl')):
             return pd.read_pickle(
