@@ -1,4 +1,4 @@
-#python setup.py sdist bdist_wheel
+#python3 -m build
 import setuptools
 
 with open("README.md", "r") as fh:
