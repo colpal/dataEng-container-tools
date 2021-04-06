@@ -1,4 +1,4 @@
-#python setup.py sdist bdist_wheel
+#python3 -m build
 import setuptools
 
 with open("README.md", "r") as fh:
@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="dataEng-container-tools",
-    version="0.4.4",
+    version="0.4.5",
     author="Alexander Saff",
     author_email="alexander_saff@colpal.com",
     description="A package containing tools for data engineering containers.",
@@ -17,7 +17,8 @@ setuptools.setup(
     install_requires=[
           'pandas',
           'google-cloud-storage',
-          'openpyxl'
+          'openpyxl',
+          'pyarrow'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
