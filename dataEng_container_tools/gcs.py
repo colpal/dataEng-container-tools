@@ -123,8 +123,11 @@ class gcs_file_io:
                 file_like_object, delimiter=delimiter, encoding=encoding)
         if file_path.endswith('.xlsx') or ((not hasEnding) and
                                            (default_file_type == 'xlsx')):
-            return pd.read_excel(file_path, dtype=dtype, engine='openpyxl') if dtype else pd.read_excel(file_path,
-                                                                                                        engine='openpyxl')
+            if self.local:
+                return pd.read_excel(file_path, dtype=dtype, engine='openpyxl') if dtype else pd.read_excel(file_path,engine='openpyxl')
+            else:
+                return pd.read_excel(file_like_object, dtype=dtype, engine='openpyxl') if dtype else pd.read_excel(file_like_object,engine='openpyxl')
+
         if file_path.endswith('.pkl') or ((not hasEnding) and
                                           (default_file_type == 'pkl')):
             return pd.read_pickle(
