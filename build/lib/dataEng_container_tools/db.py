@@ -5,7 +5,7 @@ from operator import itemgetter
 from google.cloud import datastore
 import json
 import traceback
-from dataEng_container_tools.exceptions import StorageFileNotFound, StorageNotReachable
+from dataEng_container_tools.exceptions import InvalidJobConfig
 
 
 def get_secrets(path_):
@@ -81,7 +81,15 @@ class Db:
             for key in filter_map.keys():
                 query.add_filter(key, '=', filter_map[key])
             entries = list(query.fetch())
-            if order_task_entries_params is not None:
+            if len(entries) > 1 and order_task_entries_params is not None:
+                for key_ in order_task_entries_params['order_by_key_list']:
+                    # Check if the keys provided in order_by_key_list for ordering of entries
+                    # are present as a key in the entry
+                    for entry in entries:
+                        if key_ not in entry.keys():
+                            ex = InvalidJobConfig("No element for key: {} present in fetched entry: {}. Hence entries "
+                                                  "cannot be ordered by key: {}".format(key_, entry, key_))
+                            raise ex
                 entries = sorted(entries, key=itemgetter(*order_task_entries_params['order_by_key_list']),
                                  reverse=order_task_entries_params['descending_order'])
             return entries
