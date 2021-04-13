@@ -23,7 +23,6 @@ import argparse
 import json
 import os
 
-
 class simple_setup:
     """Simplifies GCS and CLA usage.
     
@@ -254,7 +253,7 @@ class simple_setup:
         return_dict = {}
         for item in self.__secret_location_args:
             try:
-                return_dict[item] = json.load(self.__secret_location_args[item])
+                return_dict[item] = json.load(open(self.__secret_location_args[item], 'r'))
             except ValueError:
                 print(self.__secret_location_args[item],
                       'is not a properly formatted JSON.')
@@ -273,7 +272,7 @@ class simple_setup:
         return_dict = {}
         for item in self.__found_secrets:
             try:
-                return_dict[item] = json.load(self.__found_secrets[item])
+                return_dict[item] = json.load(open(self.__found_secrets[item], 'r'))
             except ValueError:
                 print(self.__found_secrets[item],
                       'is not a properly formatted JSON.')
@@ -288,6 +287,12 @@ class simple_setup:
         in this category. One CLA is created for each parameter.
         """
         return self.__other_args
+
+    def get_secrets(self):
+        loaded_secrets = {}
+        for secret in self.__secret_args:
+            loaded_secrets[secret] = json.load(open(self.__secret_args[secret], 'r'))
+        return loaded_secrets
 
     def get_args(self):
         """Returns a list dictionary of all arguments, broken into groups.
