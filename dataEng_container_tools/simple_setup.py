@@ -253,7 +253,7 @@ class simple_setup:
         return_dict = {}
         for item in self.__secret_location_args:
             try:
-                return_dict[item] = json.load(self.__secret_location_args[item])
+                return_dict[item] = json.load(open(self.__secret_location_args[item], 'r'))
             except ValueError:
                 print(self.__secret_location_args[item],
                       'is not a properly formatted JSON.')
@@ -272,7 +272,7 @@ class simple_setup:
         return_dict = {}
         for item in self.__found_secrets:
             try:
-                return_dict[item] = json.load(self.__found_secrets[item])
+                return_dict[item] = json.load(open(self.__found_secrets[item], 'r'))
             except ValueError:
                 print(self.__found_secrets[item],
                       'is not a properly formatted JSON.')
