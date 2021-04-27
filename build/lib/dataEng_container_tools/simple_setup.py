@@ -105,7 +105,7 @@ class simple_setup:
                     arg + 'bucket'] + '/' + args.__dict__[
                         arg + 'path'] + '/' + args.__dict__[arg + 'filename']
         for arg in output_args:
-            if args.__dict_.get(arg + '_uri') is not None:
+            if args.__dict__.get(arg + '_uri') is not None:
                 output_args[arg] = args.__dict__[arg]
             else:
                 output_args[arg] = args.__dict__[
