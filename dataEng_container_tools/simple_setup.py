@@ -98,15 +98,15 @@ class simple_setup:
         other_args['csv_delimiter'] = None
         args = parser.parse_args()
         for arg in input_args:
-            if args.__dict__[arg] is not None:
-                input_args[arg] = args.__dict__[arg]
+            if args.__dict__[arg + '_uri'] is not None:
+                input_args[arg] = args.__dict__[arg + '_uri']
             else:
                 input_args[arg] = args.__dict__[
                     arg + 'bucket'] + '/' + args.__dict__[
                         arg + 'path'] + '/' + args.__dict__[arg + 'filename']
         for arg in output_args:
-            if args.__dict__[arg] is not None:
-                output_args[arg] = args.__dict__[arg]
+            if args.__dict__[arg + '_uri'] is not None:
+                output_args[arg] = args.__dict__[arg + '_uri']
             else:
                 output_args[arg] = args.__dict__[
                     arg + 'bucket'] + '/' + args.__dict__[
