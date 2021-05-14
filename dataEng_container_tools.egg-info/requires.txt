@@ -1,4 +1,6 @@
 pandas
 google-cloud-storage
+google-cloud-bigquery
+google-cloud-datastore
 openpyxl
 pyarrow
