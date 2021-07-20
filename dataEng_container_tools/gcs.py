@@ -126,7 +126,7 @@ class gcs_file_io:
             return self.__wildcard_download(gcs_uri, default_file_type, dtype)
         else:
             bucket_name, file_path = self.__get_parts(gcs_uri)
-            bucket = self.gcs_client.bucket(bucket_name)
+            bucket = self.gcs_client.get_bucket(bucket_name)
             binary_object = bucket.blob(file_path).download_as_string()
             file_like_object = io.BytesIO(binary_object)
         hasEnding = file_path.endswith('.parquet') or file_path.endswith(
