@@ -104,6 +104,7 @@ class gcs_file_io:
                                 default_file_type=None,
                                 dtype=None,
                                 delimiter=None,
+                                header=0,
                                 encoding='utf-8'):
         """Downloads a file from GCS to an object in memory.
 
@@ -114,6 +115,9 @@ class gcs_file_io:
                  file type ending, it will be assumed to be this type.
             dtype: Optional. Defaults to None. A dictionary of (column: type) pairs.
             delimiter: Optional. Defaults to None. delimiter of the file
+            header: Optional, Default to 0. If set to None it will not read first row as header for
+            xls and csv files, if set to 0 or any int or List[int] it will read those rows to build
+            header/columns
             encoding: Optional. Defaults to utf-8. encoding of the file
 
         Returns:
@@ -139,15 +143,18 @@ class gcs_file_io:
         if file_path.endswith('.csv') or ((not hasEnding) and
                                           (default_file_type == 'csv')):
             return pd.read_csv(file_like_object,
-                               dtype=dtype,
+                               dtype=dtype, header=header,
                                delimiter=delimiter, encoding=encoding) if dtype else pd.read_csv(
-                file_like_object, delimiter=delimiter, encoding=encoding)
+                file_like_object, header=header, delimiter=delimiter, encoding=encoding)
         if file_path.endswith('.xlsx') or ((not hasEnding) and
                                            (default_file_type == 'xlsx')):
             if self.local:
-                return pd.read_excel(file_path, dtype=dtype, engine='openpyxl') if dtype else pd.read_excel(file_path,engine='openpyxl')
+                return pd.read_excel(file_path, dtype=dtype, header=header, engine='openpyxl') if dtype else \
+                    pd.read_excel(file_path, header=header,
+                                                                                                                           engine='openpyxl')
             else:
-                return pd.read_excel(file_like_object, dtype=dtype, engine='openpyxl') if dtype else pd.read_excel(file_like_object,engine='openpyxl')
+                return pd.read_excel(file_like_object, dtype=dtype, header=header, engine='openpyxl') if dtype else\
+                    pd.read_excel(file_like_object, header=header, engine='openpyxl')
 
         if file_path.endswith('.pkl') or ((not hasEnding) and
                                           (default_file_type == 'pkl')):
@@ -324,6 +331,7 @@ class gcs_file_io:
                                 gcs_uri,
                                 object_to_upload,
                                 default_file_type=None,
+                                header=True,
                                 metadata={}):
         """Uploads a file to GCS from an object in memory.
 
@@ -332,6 +340,8 @@ class gcs_file_io:
                 is True, it is the path to a local file where the object will be written.
             default_file_type: Optional. Defaults to None. If the uri does not have a file type
                 ending, it will be assumed to be this type.
+            header: Optional. Defaults to True, if False the columns will
+            not be written (for csv and excel)
             dtype: Optional. Defaults to None. A dictionary of (column: type) pairs.
             metadata: Optional dictionary. Defaults to an empty dictionary. The metadata to add to
                 the object. Git hash is added automatically if GITHUB_SHA is set as an environment variable.
@@ -370,15 +380,15 @@ class gcs_file_io:
         if file_path.endswith('.csv') or ((not hasEnding) and
                                           (default_file_type == 'csv')):
             if self.local:
-                return object_to_upload.to_csv(gcs_uri, index=False)
-            csv_string = object_to_upload.to_csv(encoding='utf-8', index=False)
+                return object_to_upload.to_csv(gcs_uri, header=header, index=False)
+            csv_string = object_to_upload.to_csv(encoding='utf-8', header=header, index=False)
             return blob.upload_from_string(csv_string)
         if file_path.endswith('.xlsx') or ((not hasEnding) and
                                            (default_file_type == 'xlsx')):
             if self.local:
-                return object_to_upload.to_excel(gcs_uri, index=False)
+                return object_to_upload.to_excel(gcs_uri, header=header, index=False)
             fileObject = io.BytesIO()
-            object_to_upload.to_excel(fileObject, index=False)
+            object_to_upload.to_excel(fileObject, header=header, index=False)
             fileObject.seek(0)
             return blob.upload_from_file(fileObject)
         if file_path.endswith('.pkl') or ((not hasEnding) and
