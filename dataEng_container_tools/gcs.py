@@ -107,7 +107,9 @@ class gcs_file_io:
                                 header=0,
                                 encoding='utf-8'):
         """Downloads a file from GCS to an object in memory.
-
+           header default is set to 0 as mentioned in documentation
+           https://pandas.pydata.org/docs/reference/api/pandas.read_excel.html
+           https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html
         Args:
             gcs_uri: Required. The uri of the object in GCS to download. If local is
                 True, it is the path to a local file that will be read into an object.
@@ -115,7 +117,7 @@ class gcs_file_io:
                  file type ending, it will be assumed to be this type.
             dtype: Optional. Defaults to None. A dictionary of (column: type) pairs.
             delimiter: Optional. Defaults to None. delimiter of the file
-            header: Optional, Default to 0. If set to None it will not read first row as header for
+            header: Optional, Default to 0. If set to None it will not read first row as header, only for
             xls and csv files, if set to 0 or any int or List[int] it will read those rows to build
             header/columns
             encoding: Optional. Defaults to utf-8. encoding of the file
@@ -171,7 +173,8 @@ class gcs_file_io:
                                   default_file_type=None,
                                   dtypes=[],
                                   delimiters=[],
-                                  encodings=[]):
+                                  encodings=[],
+                                  headers=[]):
         """Downloads files from GCS to an objects in memory.
 
         Args:
@@ -182,6 +185,7 @@ class gcs_file_io:
             dtypes: Optional. Defaults to empty list. A list of dictionaries of (column: type) pairs.
             delimiters: Optional. Defaults to empty list. A list of delimiters of the files
             encodings: Optional. Defaults to empty list. A list of encodings of the file
+            headers: Optional. Default to empty list. A list of headers of the file
 
         Returns:
             A list of dataframes and/or file-like objects. If the object format can be inferred it will
@@ -192,6 +196,11 @@ class gcs_file_io:
             dt = None
             delim = None
             encod = 'utf-8'
+            header = 0
+            if len(headers) == 1:
+                header = headers[0]
+            elif len(headers) > 1:
+                header = headers[pos]
             if len(dtypes) == 1:
                 dt = dtypes[0]
             elif len(dtypes) > 1:
@@ -210,7 +219,8 @@ class gcs_file_io:
                     default_file_type=default_file_type,
                     dtype=dt,
                     delimiter=delim,
-                    encoding=encod))
+                    encoding=encod,
+                    header=header))
         return return_objects
 
     def download_file_to_disk(self, gcs_uri, local_location=None):
@@ -334,14 +344,15 @@ class gcs_file_io:
                                 header=True,
                                 metadata={}):
         """Uploads a file to GCS from an object in memory.
-
+           header is set to default value True as mentioned in documentation
+           https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html
+           https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_excel.html
         Args:
             gcs_uri: Required. The uri to which the object will be uploaded. If local
                 is True, it is the path to a local file where the object will be written.
             default_file_type: Optional. Defaults to None. If the uri does not have a file type
                 ending, it will be assumed to be this type.
-            header: Optional. Defaults to True, if False the columns will
-            not be written (for csv and excel)
+            header: Optional. Defaults to True, Write out the column names (for csv and excel)
             dtype: Optional. Defaults to None. A dictionary of (column: type) pairs.
             metadata: Optional dictionary. Defaults to an empty dictionary. The metadata to add to
                 the object. Git hash is added automatically if GITHUB_SHA is set as an environment variable.
@@ -414,7 +425,8 @@ class gcs_file_io:
                                   gcs_uris,
                                   objects_to_upload,
                                   default_file_type=None,
-                                  metadata=[]):
+                                  metadata=[],
+                                  headers=[]):
         """Uploads files to GCS from objects in memory.
 
         Args:
@@ -425,30 +437,41 @@ class gcs_file_io:
             dtypes: Optional. Defaults to None. A list of dictionary of (column: type) pairs.
             metadata: Optional list of dictionaries. Defaults to an empty list. The metadata to add to
                 each object. Git hash is added automatically if GITHUB_SHA is set as an environment variable.
+            headers: Optional , Only for csv and xls files, list of boolean value for each object , if len(headers) is 1 then headers[0] will
+            be passed, if length is greater than 1 then for each ith object ith header will be passed , else default
+            value (True) is passed. header value controls whether we want to  write header of dataframe or not
 
         Returns:
             A list of the results from blob.upload()
         """
         return_objects = []
         for pos, gcs_uri in enumerate(gcs_uris):
+            header = True
+            if len(headers) == 1:
+                header = headers[0]
+            elif len(headers) > 0:
+                header = headers[pos]
             if len(metadata) == 0:
                 return_objects.append(
                     self.upload_file_from_object(
                         gcs_uri,
                         objects_to_upload[pos],
-                        default_file_type=default_file_type))
+                        default_file_type=default_file_type,
+                        header=header))
             elif len(metadata) == 1:
                 return_objects.append(
                     self.upload_file_from_object(
                         gcs_uri,
                         objects_to_upload[pos],
                         default_file_type=default_file_type,
-                        metadata=metadata[0]))
+                        metadata=metadata[0],
+                        header=header))
             else:
                 return_objects.append(
                     self.upload_file_from_object(
                         gcs_uri,
                         objects_to_upload[pos],
                         default_file_type=default_file_type,
-                        metadata=metadata[pos]))
+                        metadata=metadata[pos],
+                        header=header))
         return return_objects
