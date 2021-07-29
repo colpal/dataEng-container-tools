@@ -67,6 +67,7 @@ Deals with uploading and downloading files to/from GCS. Has one class `gcs_file_
   * `gcs_uri`: Required. The uri to which the object will be uploaded. If `local` is `True`, it is the path to a local file where the object will be written.
   * `default_file_type`: Optional. Defaults to `None`. If the uri does not have a file type ending, it will be assumed to be this type.
   * `header`: Optional. Defaults to `True`, Write out the column names (for csv and excel)
+  * `index`: Optional. Default to False, Whether to write the index or not (for csv and excel)
   * `dtype`: Optional. Defaults to `None`. A dictionary of (column: type) pairs.
   * `metadata`: Optional dictionary. Defaults to an empty dictionary. The metadata to add to the object. Git hash is added automatically if `GITHUB_SHA` is set as an enviornment variable.
 * `upload_files_from_objects`: Uploads files to GCS from objects in memory:

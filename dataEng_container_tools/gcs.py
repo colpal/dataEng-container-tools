@@ -342,6 +342,7 @@ class gcs_file_io:
                                 object_to_upload,
                                 default_file_type=None,
                                 header=True,
+                                index=False,
                                 metadata={}):
         """Uploads a file to GCS from an object in memory.
            header is set to default value True as mentioned in documentation
@@ -353,6 +354,7 @@ class gcs_file_io:
             default_file_type: Optional. Defaults to None. If the uri does not have a file type
                 ending, it will be assumed to be this type.
             header: Optional. Defaults to True, Write out the column names (for csv and excel)
+            index: Optional. Default to False, Whether to write the index or not (for csv and excel)
             dtype: Optional. Defaults to None. A dictionary of (column: type) pairs.
             metadata: Optional dictionary. Defaults to an empty dictionary. The metadata to add to
                 the object. Git hash is added automatically if GITHUB_SHA is set as an environment variable.
@@ -391,15 +393,15 @@ class gcs_file_io:
         if file_path.endswith('.csv') or ((not hasEnding) and
                                           (default_file_type == 'csv')):
             if self.local:
-                return object_to_upload.to_csv(gcs_uri, header=header, index=False)
-            csv_string = object_to_upload.to_csv(encoding='utf-8', header=header, index=False)
+                return object_to_upload.to_csv(gcs_uri, header=header, index=index)
+            csv_string = object_to_upload.to_csv(encoding='utf-8', header=header, index=index)
             return blob.upload_from_string(csv_string)
         if file_path.endswith('.xlsx') or ((not hasEnding) and
                                            (default_file_type == 'xlsx')):
             if self.local:
-                return object_to_upload.to_excel(gcs_uri, header=header, index=False)
+                return object_to_upload.to_excel(gcs_uri, header=header, index=index)
             fileObject = io.BytesIO()
-            object_to_upload.to_excel(fileObject, header=header, index=False)
+            object_to_upload.to_excel(fileObject, header=header, index=index)
             fileObject.seek(0)
             return blob.upload_from_file(fileObject)
         if file_path.endswith('.pkl') or ((not hasEnding) and
