@@ -428,7 +428,8 @@ class gcs_file_io:
                                   objects_to_upload,
                                   default_file_type=None,
                                   metadata=[],
-                                  headers=[]):
+                                  headers=[],
+                                  indices=[]):
         """Uploads files to GCS from objects in memory.
 
         Args:
@@ -442,13 +443,19 @@ class gcs_file_io:
             headers: Optional , Only for csv and xls files, list of boolean value for each object , if len(headers) is 1 then headers[0] will
             be passed, if length is greater than 1 then for each ith object ith header will be passed , else default
             value (True) is passed. header value controls whether we want to  write header of dataframe or not
-
+            indices : Optional. Defaults to [] , List of boolean value for index (if index is True then index
+             will be written)
         Returns:
             A list of the results from blob.upload()
         """
         return_objects = []
         for pos, gcs_uri in enumerate(gcs_uris):
             header = True
+            index = False
+            if len(indices) == 1:
+                index = indices[0]
+            elif len(indices) > 1:
+                index = indices[pos]
             if len(headers) == 1:
                 header = headers[0]
             elif len(headers) > 0:
@@ -459,7 +466,8 @@ class gcs_file_io:
                         gcs_uri,
                         objects_to_upload[pos],
                         default_file_type=default_file_type,
-                        header=header))
+                        header=header,
+                        index=index))
             elif len(metadata) == 1:
                 return_objects.append(
                     self.upload_file_from_object(
@@ -467,7 +475,8 @@ class gcs_file_io:
                         objects_to_upload[pos],
                         default_file_type=default_file_type,
                         metadata=metadata[0],
-                        header=header))
+                        header=header,
+                        index=index))
             else:
                 return_objects.append(
                     self.upload_file_from_object(
@@ -475,5 +484,6 @@ class gcs_file_io:
                         objects_to_upload[pos],
                         default_file_type=default_file_type,
                         metadata=metadata[pos],
-                        header=header))
+                        header=header,
+                        index=index))
         return return_objects

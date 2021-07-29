@@ -91,6 +91,7 @@ Deals with uploading and downloading files to/from GCS. Has one class `gcs_file_
   * `default_file_type`: Optional. Defaults to `None`. A sting. If the uri an object does not have a file type ending, it will be assumed to be this type.
   * `dtypes`: Optional. Defaults to `None`. A list of dictionary of (column: type) pairs.
   * `headers`: Optional , Default to `[]`. Only for `csv` and `xls` files, list of boolean value for each object , if length of `headers` is `1` then `headers[0]` will be used while writing all object, if `length` is greater than `1` then for each `ith` object `ith` header will be passed , else default value `True` will be passed. `header` value controls whether we want to  write header of dataframe or not
+  * `indices` : Optional. Defaults to [] , List of boolean value for index (if index is True then index will be written)
 * `upload_file_from_disk`: Uploads a file to GCS from the container's hard drive:
   * `gcs_uri`: Required. The uri to which the object will be uploaded. If `local` is `True`, it is the path to a local file that will be copied from `local_location`.
   * `local_location`: Optional. Defaults to `None`. The location of the object. If `None`, assumes the same path as the the GCS URI.
