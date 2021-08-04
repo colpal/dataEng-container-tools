@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="dataEng-container-tools",
-    version="0.5.1",
+    version="0.5.3",
     author="Alexander Saff",
     author_email="alexander_saff@colpal.com",
     description="A package containing tools for data engineering containers.",
@@ -17,6 +17,8 @@ setuptools.setup(
     install_requires=[
           'pandas',
           'google-cloud-storage',
+          'google-cloud-bigquery',
+          'google-cloud-datastore',
           'openpyxl',
           'pyarrow'
     ],
