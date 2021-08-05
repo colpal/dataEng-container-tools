@@ -5,24 +5,6 @@ This packages is split into five parts: **CLA**, **GCS**, **safe_stdout**, **DB*
 ## CLA:
 Deals with receiving input from the command line. Has three classes: `custom_command_line_argument`, `command_line_argument_type`, and `command_line_arguments`.
 
-* `custom_command_line_arguments`: Acts as a container for custom command line arguments. All of the attributes available when creating command line arguments through [the `parser.add_argument()` method](https://docs.python.org/3/library/argparse.html#argparse.ArgumentParser.add_argument) from [the `argparse` library](https://docs.python.org/3/library/argparse.html) are available in this class. Has the following methods:
-  * `__init__`: Creates the class with the following inputs:
-    * `name`: Required. The name of the command line argument. Should be given without the preceding '--', which will be added automatically.
-    * `action`: Optional. Defaults to `None`. The basic type of action to be taken when this argument is encountered at the command line.
-    * `nargs`: Optional. Defaults to `None`. The number of command-line arguments that should be consumed. A number, `'*'`, or `'+'`.
-    * `const`: Optional. Defaults to `None`. A constant value required by some action and nargs selections.
-    * `default`: Optional. Defaults to `None`. The value produced if the argument is absent from the command line.
-    * `data_type`: Optional. Defaults to `None`. The type to which the command-line argument should be converted.
-    * `choices`: Optional. Defaults to `None`. A container of the allowable values for the argument.
-    * `required`: Optional. Defaults to `None`. Whether or not the command-line option may be omitted (optionals only).
-    * `help_message`: Optional. Defaults to `None`. A brief description of what the argument does.
-    * `metavar`: Optional. Defaults to `None`. A name for the argument in usage messages.
-    * `dest`: Optional. Defaults to `None`. The name of the attribute to be added to the object returned by parse_args().
-  
-* `command_line_argument_type`: Enumeration type. Used for populating initialization fields in `command_line_arguments`. Has the following types:
-  * `OPTIONAL`: Indicates the associated command line argument should be created as optional.
-  * `REQUIRED`: Indicates the associated command line argument should be created as required.
-  
 * `command_line_arguments`: Creates and parses command line arguments. Includes helper functions for using the command line inputs. Has the following methods:
   * `__init__`: Created the class with the following inputs:
     * `input_files`: Optional `command_line_argument_type`. Defaults to `None`. If `REQUIRED`, will add `--input_bucket_names`, `--input_paths`, and `--input_filenames` as required command line inputs. If `OPTIONAL`, will add them as optional. If `None` they will not be added.
@@ -41,7 +23,26 @@ Deals with receiving input from the command line. Has three classes: `custom_com
   * `get_secret_locations`: Returns the secret locations passed in through the command line as a list of strings.
   * `get_secrets`: Returns a dictionary of objects. The key is the file name of the secret, and the object is that file loaded using 'json.load()`.
   * `check_args`: Does nothing. In future this will error check the arguments passed in through the command line.
+   
+* `custom_command_line_arguments`: Acts as a container for custom command line arguments. All of the attributes available when creating command line arguments through [the `parser.add_argument()` method](https://docs.python.org/3/library/argparse.html#argparse.ArgumentParser.add_argument) from [the `argparse` library](https://docs.python.org/3/library/argparse.html) are available in this class. Has the following methods:
+  * `__init__`: Creates the class with the following inputs:
+    * `name`: Required. The name of the command line argument. Should be given without the preceding '--', which will be added automatically.
+    * `action`: Optional. Defaults to `None`. The basic type of action to be taken when this argument is encountered at the command line.
+    * `nargs`: Optional. Defaults to `None`. The number of command-line arguments that should be consumed. A number, `'*'`, or `'+'`.
+    * `const`: Optional. Defaults to `None`. A constant value required by some action and nargs selections.
+    * `default`: Optional. Defaults to `None`. The value produced if the argument is absent from the command line.
+    * `data_type`: Optional. Defaults to `None`. The type to which the command-line argument should be converted.
+    * `choices`: Optional. Defaults to `None`. A container of the allowable values for the argument.
+    * `required`: Optional. Defaults to `None`. Whether or not the command-line option may be omitted (optionals only).
+    * `help_message`: Optional. Defaults to `None`. A brief description of what the argument does.
+    * `metavar`: Optional. Defaults to `None`. A name for the argument in usage messages.
+    * `dest`: Optional. Defaults to `None`. The name of the attribute to be added to the object returned by parse_args().
   
+* `command_line_argument_type`: Enumeration type. Used for populating initialization fields in `command_line_arguments`. Has the following types:
+  * `OPTIONAL`: Indicates the associated command line argument should be created as optional.
+  * `REQUIRED`: Indicates the associated command line argument should be created as required.
+  
+
 ## GCS:
 Deals with uploading and downloading files to/from GCS. Has one class `gcs_file_io` with the following methods:
 * `__init__`: Creates the class with the following inputs:
