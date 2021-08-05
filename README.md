@@ -18,7 +18,7 @@ Deals with receiving input from the command line. Has three classes: `custom_com
     * `help_message`: Optional. Defaults to `None`. A brief description of what the argument does.
     * `metavar`: Optional. Defaults to `None`. A name for the argument in usage messages.
     * `dest`: Optional. Defaults to `None`. The name of the attribute to be added to the object returned by parse_args().
-    
+  
 * `command_line_argument_type`: Enumeration type. Used for populating initialization fields in `command_line_arguments`. Has the following types:
   * `OPTIONAL`: Indicates the associated command line argument should be created as optional.
   * `REQUIRED`: Indicates the associated command line argument should be created as required.
@@ -51,10 +51,12 @@ Deals with uploading and downloading files to/from GCS. Has one class `gcs_file_
   * `gcs_uri`: Required. The uri of the object in GCS to download. If `local` is `True`, it is the path to a local file that will be read into an object.
   * `default_file_type`: Optional. Defaults to `None`. If the uri the object does not have a file type ending, it will be assumed to be this type.
   * `dtype`: Optional. Defaults to `None`. A dictionary of (column: type) pairs.
+  * `header`: Optional, Default to `0`. If set to `None` it will not read first row as header, only for xls and csv files, if set to `0` or any `int` or `List[int]` it will read those rows to build header/columns
 * `download_files_to_objects`: Downloads files from GCS to objects in memory:
   * `gcs_uris`: Required. The uris of the object in GCS to download. If `local` is `True`, it is the paths to local files that will be read into objects.
   * `default_file_type`: Optional. Defaults to `None`. A string. If the uri an object does not have a file type ending, it will be assumed to be this type.
   * `dtypes`: Optional. Defaults to empty list. A list of dictionary of (column: type) pairs.
+  * `headers`: Optional. Default to empty list. A list of headers of the file
 * `download_file_to_disk`: Downloads a file from GCS to the container's hard drive:
   * `gcs_uri`: Required. The uri of the object in GCS to download. If `local` is `True`, it is the path to a local file that will be copied to `local_location`.
   * `local_location`: Optional. Defaults to `None`. Where to save the object. If `None`, saves to same path as the the GCS URI.
@@ -64,12 +66,16 @@ Deals with uploading and downloading files to/from GCS. Has one class `gcs_file_
 * `upload_file_from_object`: Uploads a file to GCS from an object in memory:
   * `gcs_uri`: Required. The uri to which the object will be uploaded. If `local` is `True`, it is the path to a local file where the object will be written.
   * `default_file_type`: Optional. Defaults to `None`. If the uri does not have a file type ending, it will be assumed to be this type.
+  * `header`: Optional. Defaults to `True`, Write out the column names (for csv and excel)
+  * `index`: Optional. Default to False, Whether to write the index or not (for csv and excel)
   * `dtype`: Optional. Defaults to `None`. A dictionary of (column: type) pairs.
   * `metadata`: Optional dictionary. Defaults to an empty dictionary. The metadata to add to the object. Git hash is added automatically if `GITHUB_SHA` is set as an enviornment variable.
 * `upload_files_from_objects`: Uploads files to GCS from objects in memory:
   * `gcs_uris`: Required. The uris to which the objects will be uploaded. If `local` is `True`, it is the paths to local files where the objects will be written.
   * `default_file_type`: Optional. Defaults to `None`. A sting. If the uri an object does not have a file type ending, it will be assumed to be this type.
   * `dtypes`: Optional. Defaults to `None`. A list of dictionary of (column: type) pairs.
+  * `headers`: Optional , Default to `[]`. Only for `csv` and `xls` files, list of boolean value for each object , if length of `headers` is `1` then `headers[0]` will be used while writing all object, if `length` is greater than `1` then for each `ith` object `ith` header will be passed , else default value `True` will be passed. `header` value controls whether we want to  write header of dataframe or not
+  * `indices` : Optional. Defaults to [] , List of boolean value for index (if index is True then index will be written)
 * `upload_file_from_disk`: Uploads a file to GCS from the container's hard drive:
   * `gcs_uri`: Required. The uri to which the object will be uploaded. If `local` is `True`, it is the path to a local file that will be copied from `local_location`.
   * `local_location`: Optional. Defaults to `None`. The location of the object. If `None`, assumes the same path as the the GCS URI.
@@ -105,7 +111,7 @@ Deals with datastore operations. Has one method `get_secrets` and one class `Db`
   * `params`: Required. dictionary containing all the parameters(key-value pairs) to be stored
   * `order_task_entries_params`: Optional. parameters to order the task entries if required
 
- 
+
 ## safe_stdout:
 Ensures that secrets are not accidentally printed using stdout. Has one class `safe_stdout`, two helper methods, `setup_stdout` and `setup_default_stdout`, and one global variable `default_secret_folder`:
 
@@ -116,7 +122,7 @@ Ensures that secrets are not accidentally printed using stdout. Has one class `s
     * `message`: Required. The message to write.
   * `add_words`: Adds a list of words to the list of words being censored. Has the following inputs:
     * `bad_words`: Required. A list of wors to censor from output.
-    
+  
 * `setup_stdout`: Censors all the values in a list of secret files from stdout. Takes the following input:
   * `secret_locations`: Required. A list of secret file locations.
   
