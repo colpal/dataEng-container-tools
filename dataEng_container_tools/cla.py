@@ -336,8 +336,7 @@ class command_line_arguments:
         for pos, filename in enumerate(self.__args.input_filenames):
             if not constant_bucket:
                 bucket_name = self.__args.input_bucket_names[pos]
-            output.append("gs://" + bucket_name + "/" +
-                          self.__args.input_paths[pos] + "/" + filename)
+            output.append(f"gs://{bucket_name}/{self.__args.input_paths[pos]}/{filename}".replace("/ /","/").replace("/./","/").replace("//","/"))
         return output
 
     def get_output_uris(self):
@@ -358,8 +357,7 @@ class command_line_arguments:
         for pos, filename in enumerate(self.__args.output_filenames):
             if not constant_bucket:
                 bucket_name = self.__args.output_bucket_names[pos]
-            output.append("gs://" + bucket_name + "/" +
-                          self.__args.output_paths[pos] + "/" + filename)
+            output.append(f"gs://{bucket_name}/{self.__args.output_paths[pos]}/{filename}".replace("/ /","/").replace("/./","/").replace("//","/"))
         return output
 
     def get_secret_locations(self):
