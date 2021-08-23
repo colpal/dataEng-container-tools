@@ -141,10 +141,12 @@ class command_line_arguments:
                 will add --input_bucket_names, --input_paths, and --input_filenames as required
                 command line inputs. If OPTIONAL, will add them as optional. If None they will
                 not be added.
+            input_file_names: ...
             output_files: Optional command_line_argument_type. Defaults to None. If REQUIRED,
                 will add --output_bucket_names, --output_paths, and --output_filenames as required
                 command line inputs. If command_line_argument_type.OPTIONAL, will add them as
                 optional. If None they will not be added.
+            output_file_names: ...
             secret_locations: Optional command_line_argument_type. Defaults to None. If REQUIRED,
                 will add --gcs_secret_locations as required command line input. If OPTIONAL,
                 will add it as optional. If None, it will not be added.
