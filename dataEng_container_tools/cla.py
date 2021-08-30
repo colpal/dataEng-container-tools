@@ -59,6 +59,7 @@ class custom_command_line_argument:
                  required=None,
                  help_message=None,
                  metavar=None,
+                 pandas_kwargs=None,
                  dest=None):
         """Initializes custom_command_line_arguments with desired configuration.
 
@@ -86,6 +87,7 @@ class custom_command_line_argument:
         self.help_message = help_message
         self.metavar = metavar
         self.dest = dest
+        self.pandas_kwargs = pandas_kwargs
 
     def __str__(self):
         return ("name: " + self.name + ", " + "action: " + self.action + ", " +
@@ -130,6 +132,7 @@ class command_line_arguments:
                  input_dtypes=None,
                  running_local=None,
                  identifying_tags=None,
+                 pandas_kwargs=None,
                  parser=None):
         """Initializes command_line_arguments with desired configuration.
 
@@ -171,6 +174,7 @@ class command_line_arguments:
         self.__description = description
         self.__input_dtypes = input_dtypes
         self.__running_local = running_local
+        self.__pandas_kwargs = pandas_kwargs
         parser = parser if parser else argparse.ArgumentParser(
             description=description)
         if input_files:
@@ -285,6 +289,11 @@ class command_line_arguments:
                                     help=item.help_message,
                                     metavar=item.metavar,
                                     dest=item.dest)
+        if pandas_kwargs:
+            parser.add_argument("--pandas_kwargs",
+                                type=json.loads,
+                                required=pandas_kwargs.value,
+                                help="JSON dictionary of additional aruments for pandas")
         self.__args = parser.parse_args()
         print("CLA Input:", self)
         if identifying_tags:
@@ -398,6 +407,9 @@ class command_line_arguments:
             except ValueError:
                 print(item, "is not a properly formatted json file.")
         return return_list
+    
+    def get_pandas_kwargs(self):
+        return self.__pandas_kwargs
 
     def check_args(self):
         """Ensures arguments are present and valid.
