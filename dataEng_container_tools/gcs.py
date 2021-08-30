@@ -88,7 +88,7 @@ class gcs_file_io:
         file_path = gcs_uri[gcs_uri.find("/") + 1:]
         return bucket, file_path
 
-    def __wildcard_download(self, gcs_uri, default_file_type, dtype):
+    def __wildcard_download(self, gcs_uri, default_file_type, dtype, pandas_kwargs=None):
         return_dict = {}
         bucket_name, file_path = self.__get_parts(gcs_uri)
         bucket = self.gcs_client.bucket(bucket_name)
@@ -96,7 +96,7 @@ class gcs_file_io:
         blobs = list(bucket.list_blobs(prefix=prefix))
         for blob in blobs:
             return_dict[blob.name] = self.download_file_to_object(
-                blob.name, default_file_type=default_file_type, dtype=dtype)
+                blob.name, default_file_type=default_file_type, dtype=dtype, pandas_kwargs=pandas_kwargs)
         return return_dict
 
     def download_file_to_object(self,
@@ -104,6 +104,7 @@ class gcs_file_io:
                                 default_file_type=None,
                                 dtype=None,
                                 delimiter=None,
+                                pandas_kwargs=None,
                                 header=0,
                                 encoding='utf-8'):
         """Downloads a file from GCS to an object in memory.
@@ -129,10 +130,10 @@ class gcs_file_io:
             file_path = gcs_uri
             file_like_object = open(gcs_uri)
         elif '*' in gcs_uri:
-            return self.__wildcard_download(gcs_uri, default_file_type, dtype)
+            return self.__wildcard_download(gcs_uri, default_file_type, dtype, pandas_kwargs=pandas_kwargs)
         else:
             bucket_name, file_path = self.__get_parts(gcs_uri)
-            bucket = self.gcs_client.bucket(bucket_name)
+            bucket = self.gcs_client.get_bucket(bucket_name)
             binary_object = bucket.blob(file_path).download_as_string()
             file_like_object = io.BytesIO(binary_object)
         hasEnding = file_path.endswith('.parquet') or file_path.endswith(
@@ -141,7 +142,7 @@ class gcs_file_io:
                                               (default_file_type == 'parquet')):
             return pd.read_parquet(
                 file_like_object,
-                dtype=dtype) if dtype else pd.read_parquet(file_like_object)
+                dtype=dtype) if dtype else pd.read_parquet(file_like_object, **pandas_kwargs)
         if file_path.endswith('.csv') or ((not hasEnding) and
                                           (default_file_type == 'csv')):
             return pd.read_csv(file_like_object,
@@ -152,11 +153,10 @@ class gcs_file_io:
                                            (default_file_type == 'xlsx')):
             if self.local:
                 return pd.read_excel(file_path, dtype=dtype, header=header, engine='openpyxl') if dtype else \
-                    pd.read_excel(file_path, header=header,
-                                                                                                                           engine='openpyxl')
+                    pd.read_excel(file_path, header=header, engine='openpyxl', **pandas_kwargs)
             else:
                 return pd.read_excel(file_like_object, dtype=dtype, header=header, engine='openpyxl') if dtype else\
-                    pd.read_excel(file_like_object, header=header, engine='openpyxl')
+                    pd.read_excel(file_like_object, header=header, engine='openpyxl', **pandas_kwargs)
 
         if file_path.endswith('.pkl') or ((not hasEnding) and
                                           (default_file_type == 'pkl')):
@@ -174,6 +174,7 @@ class gcs_file_io:
                                   dtypes=[],
                                   delimiters=[],
                                   encodings=[],
+                                  pandas_kwargs=None,
                                   headers=[]):
         """Downloads files from GCS to an objects in memory.
 
@@ -220,6 +221,7 @@ class gcs_file_io:
                     dtype=dt,
                     delimiter=delim,
                     encoding=encod,
+                    pandas_kwargs=pandas_kwargs,
                     header=header))
         return return_objects
 
@@ -343,7 +345,8 @@ class gcs_file_io:
                                 default_file_type=None,
                                 header=True,
                                 index=False,
-                                metadata={}):
+                                metadata={},
+                                pandas_kwargs=None):
         """Uploads a file to GCS from an object in memory.
            header is set to default value True as mentioned in documentation
            https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html
@@ -385,23 +388,23 @@ class gcs_file_io:
         if file_path.endswith('.parquet') or ((not hasEnding) and
                                               (default_file_type == 'parquet')):
             if self.local:
-                return object_to_upload.to_parquet(gcs_uri)
+                return object_to_upload.to_parquet(gcs_uri, **pandas_kwargs)
             fileObject = io.BytesIO()
-            object_to_upload.to_parquet(fileObject)
+            object_to_upload.to_parquet(fileObject, **pandas_kwargs)
             fileObject.seek(0)
             return blob.upload_from_file(fileObject)
         if file_path.endswith('.csv') or ((not hasEnding) and
                                           (default_file_type == 'csv')):
             if self.local:
-                return object_to_upload.to_csv(gcs_uri, header=header, index=index)
-            csv_string = object_to_upload.to_csv(encoding='utf-8', header=header, index=index)
+                return object_to_upload.to_csv(gcs_uri, header=header, index=index, **pandas_kwargs)
+            csv_string = object_to_upload.to_csv(encoding='utf-8', header=header, index=index, **pandas_kwargs)
             return blob.upload_from_string(csv_string)
         if file_path.endswith('.xlsx') or ((not hasEnding) and
                                            (default_file_type == 'xlsx')):
             if self.local:
-                return object_to_upload.to_excel(gcs_uri, header=header, index=index)
+                return object_to_upload.to_excel(gcs_uri, header=header, index=index, **pandas_kwargs)
             fileObject = io.BytesIO()
-            object_to_upload.to_excel(fileObject, header=header, index=index)
+            object_to_upload.to_excel(fileObject, header=header, index=index, **pandas_kwargs)
             fileObject.seek(0)
             return blob.upload_from_file(fileObject)
         if file_path.endswith('.pkl') or ((not hasEnding) and
@@ -415,6 +418,7 @@ class gcs_file_io:
                                            (default_file_type == 'json')):
             if self.local:
                 return json.dump(gcs_uri, open(gcs_uri, 'w'))
+            fileObject = io.BytesIO()
             json_string = json.dumps(fileObject)
             return blob.upload_from_string(json_string)
         if self.local:
@@ -428,6 +432,7 @@ class gcs_file_io:
                                   objects_to_upload,
                                   default_file_type=None,
                                   metadata=[],
+                                  pandas_kwargs=None,
                                   headers=[],
                                   indices=[]):
         """Uploads files to GCS from objects in memory.
@@ -466,6 +471,7 @@ class gcs_file_io:
                         gcs_uri,
                         objects_to_upload[pos],
                         default_file_type=default_file_type,
+                        pandas_kwargs=pandas_kwargs,
                         header=header,
                         index=index))
             elif len(metadata) == 1:
@@ -475,6 +481,7 @@ class gcs_file_io:
                         objects_to_upload[pos],
                         default_file_type=default_file_type,
                         metadata=metadata[0],
+                        pandas_kwargs=pandas_kwargs,
                         header=header,
                         index=index))
             else:
@@ -484,6 +491,7 @@ class gcs_file_io:
                         objects_to_upload[pos],
                         default_file_type=default_file_type,
                         metadata=metadata[pos],
+                        pandas_kwargs=pandas_kwargs,
                         header=header,
                         index=index))
         return return_objects
