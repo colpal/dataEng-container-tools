@@ -59,7 +59,6 @@ class custom_command_line_argument:
                  required=None,
                  help_message=None,
                  metavar=None,
-                 pandas_kwargs=None,
                  dest=None):
         """Initializes custom_command_line_arguments with desired configuration.
 
@@ -87,7 +86,6 @@ class custom_command_line_argument:
         self.help_message = help_message
         self.metavar = metavar
         self.dest = dest
-        self.pandas_kwargs = pandas_kwargs
 
     def __str__(self):
         return ("name: " + self.name + ", " + "action: " + self.action + ", " +
@@ -135,7 +133,8 @@ class command_line_arguments:
                  input_dtypes=None,
                  running_local=None,
                  identifying_tags=None,
-                 pandas_kwargs=None,
+                 input_pandas_kwargs=None,
+                 output_pandas_kwargs=None,
                  parser=None):
         """Initializes command_line_arguments with desired configuration.
 
@@ -180,7 +179,8 @@ class command_line_arguments:
         self.__description = description
         self.__input_dtypes = input_dtypes
         self.__running_local = running_local
-        self.__pandas_kwargs = pandas_kwargs
+        self.__input_pandas_kwargs = input_pandas_kwargs
+        self.__output_pandas_kwargs = output_pandas_kwargs
         parser = parser if parser else argparse.ArgumentParser(
             description=description)
         if input_files:
@@ -217,16 +217,16 @@ class command_line_arguments:
                     nargs='+',
                     help="JSON dictionaries of (column: type) pairs to cast columns to"
                 )
-            
-            if input_file_names:
-                parser.add_argument(
-                    "--input_file_names",
-                    type=str,
-                    required=input_file_names.value,
-                    nargs='+',
-                    help="Comma separated list of names corresponding to each input file"
-                )
-        
+            if input_pandas_kwargs:
+                parser.add_argument("--input_pandas_kwargs",
+                    type=json.loads,
+                    required=input_pandas_kwargs.value,
+                    help="JSON dictionary of additional arguments for reading a file to a pandas dataframe")
+            parser.add_argument("--input_delimiters",
+                                type=str,
+                                required=False,
+                                nargs='+',
+                                help="Delimiters for input files")
         if output_files:
             parser.add_argument("--output_bucket_names",
                                 type=str,
@@ -250,15 +250,11 @@ class command_line_arguments:
                                 required=False,
                                 nargs='+',
                                 help="Delimiters for output files")
-
-            if output_file_names:
-                parser.add_argument(
-                    "--output_file_names",
-                    type=str,
-                    required=output_file_names.value,
-                    nargs='+',
-                    help="Comma separated list of names corresponding to each output file"
-                )
+            if output_pandas_kwargs:
+                parser.add_argument("--output_pandas_kwargs",
+                    type=json.loads,
+                    required=output_pandas_kwargs.value,
+                    help="JSON dictionary of additional arguments for reading a file to a pandas dataframe")
         if secret_locations:
             parser.add_argument(
                 "--secret_locations",
@@ -326,11 +322,6 @@ class command_line_arguments:
                                     help=item.help_message,
                                     metavar=item.metavar,
                                     dest=item.dest)
-        if pandas_kwargs:
-            parser.add_argument("--pandas_kwargs",
-                                type=json.loads,
-                                required=pandas_kwargs.value,
-                                help="JSON dictionary of additional aruments for pandas")
         self.__args = parser.parse_args()
         print("CLA Input:", self)
         if identifying_tags:
@@ -446,7 +437,10 @@ class command_line_arguments:
         return return_list
     
     def get_pandas_kwargs(self):
-        return self.__args.pandas_kwargs
+        kwargs = []
+        kwargs.append(self.__args.input_pandas_kwargs)
+        kwargs.append(self.__args.output_pandas_kwargs)
+        return kwargs
     
     def check_args(self):
         """Ensures arguments are present and valid.
