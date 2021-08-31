@@ -431,9 +431,7 @@ class command_line_arguments:
         return return_list
     
     def get_pandas_kwargs(self):
-        kwargs = []
-        kwargs.append(self.__args.input_pandas_kwargs)
-        kwargs.append(self.__args.output_pandas_kwargs)
+        kwargs = (self.__args.input_pandas_kwargs,self.__args.output_pandas_kwargs)
         return kwargs
     
     def check_args(self):
