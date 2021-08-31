@@ -226,7 +226,7 @@ class command_line_arguments:
                                 type=str,
                                 required=False,
                                 nargs='+',
-                                help="Delimiters for input files")
+                                help="Delimiters for input files") 
         if output_files:
             parser.add_argument("--output_bucket_names",
                                 type=str,
