@@ -375,19 +375,14 @@ class command_line_arguments:
             return []
         constant_bucket = False
         bucket_name = ''
-        names_list=[]
-        files_list=[]
-        output = {}
-
-        if len(self.__args.input_bucket_names) == 1: ## 'If all input files are from the same bucket'
-            constant_bucket = True #'Boolean for above condition
-            bucket_name = self.__args.input_bucket_names[0] #assign the bucket_name as args bucket name.
-        for pos, filename in enumerate(self.__args.input_filenames): #for each filename and it's position
-            if not constant_bucket: # if there are multiple buckets
+        output = []
+        if len(self.__args.input_bucket_names) == 1:
+            constant_bucket = True 
+            bucket_name = self.__args.input_bucket_names[0]
+        for pos, filename in enumerate(self.__args.input_filenames):
+            if not constant_bucket:
                 bucket_name = self.__args.input_bucket_names[pos]
-            files_list.append(f"gs://{bucket_name}/{self.__args.input_paths[pos]}/{filename}".replace("/ /","/").replace("/./","/").replace("//","/"))
-            names_list.append(self.__args.input_file_names[pos])
-            output=dict(zip(names_list, files_list))
+            output.append(f"gs://{bucket_name}/{self.__args.input_paths[pos]}/{filename}".replace("/ /","/").replace("/./","/").replace("//","/"))
         return output
 
     def get_output_uris(self):
