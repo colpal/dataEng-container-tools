@@ -195,6 +195,11 @@ class command_line_arguments:
                                 required=input_files.value,
                                 nargs='+',
                                 help="Filenames to read file from.")
+            parser.add_argument("--input_delimiters",
+                                type=str,
+                                required=False,
+                                nargs='+',
+                                help="Delimiters for input files") 
             if input_dtypes:
                 parser.add_argument(
                     "--input_dtypes",
@@ -209,11 +214,7 @@ class command_line_arguments:
                     type=json.loads,
                     required=input_pandas_kwargs.value,
                     help="JSON dictionary of additional arguments for reading a file to a pandas dataframe")
-            parser.add_argument("--input_delimiters",
-                                type=str,
-                                required=False,
-                                nargs='+',
-                                help="Delimiters for input files") 
+           
         if output_files:
             parser.add_argument("--output_bucket_names",
                                 type=str,
