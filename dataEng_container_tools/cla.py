@@ -446,7 +446,7 @@ class command_line_arguments:
         return return_list
     
     def get_pandas_kwargs(self):
-        self.__args.pandas_kwargs
+        return self.__args.pandas_kwargs
     
     def check_args(self):
         """Ensures arguments are present and valid.
