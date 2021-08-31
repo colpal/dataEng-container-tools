@@ -126,6 +126,9 @@ class gcs_file_io:
         Returns:
             A dataframe if the object format can be inferred, otherwise a file-like object.
         """
+        if not pandas_kwargs:
+            pandas_kwargs = {}
+            
         if self.local:
             file_path = gcs_uri
             file_like_object = open(gcs_uri)
@@ -376,6 +379,10 @@ class gcs_file_io:
         if 'GITHUB_SHA' in os.environ.keys():
             metadata['git_hash'] = os.environ['GITHUB_SHA']
         blob = None
+        
+        if not pandas_kwargs:
+            pandas_kwargs = {}
+            
         if not self.local:
             bucket_name, file_path = self.__get_parts(gcs_uri)
             bucket = self.gcs_client.bucket(bucket_name)
