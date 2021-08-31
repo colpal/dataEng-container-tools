@@ -340,7 +340,7 @@ class command_line_arguments:
         bucket_name = ''
         output = []
         if len(self.__args.input_bucket_names) == 1:
-            constant_bucket = True
+            constant_bucket = True 
             bucket_name = self.__args.input_bucket_names[0]
         for pos, filename in enumerate(self.__args.input_filenames):
             if not constant_bucket:
