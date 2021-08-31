@@ -122,8 +122,11 @@ class command_line_arguments:
 
     def __init__(self,
                  input_files=None,
+                 input_file_names=None,
                  output_files=None,
+                 output_file_names=None,
                  secret_locations=None,
+                 secret_location_names=None,
                  default_file_type=None,
                  custom_inputs=None,
                  description=None,
@@ -166,8 +169,11 @@ class command_line_arguments:
                 Defaults to False.
         """
         self.__input_files = input_files
+        self.__input_file_names = input_file_names
         self.__output_files = output_files
+        self.__output_file_names = output_file_names
         self.__secret_locations = secret_locations
+        self.__secret_location_names = secret_location_names
         self.__default_file_type = default_file_type
         self.__custom_inputs = custom_inputs
         self.__description = description
@@ -178,6 +184,7 @@ class command_line_arguments:
         parser = parser if parser else argparse.ArgumentParser(
             description=description)
         if input_files:
+            
             parser.add_argument("--input_bucket_names",
                                 type=str,
                                 required=input_files.value,
@@ -206,8 +213,7 @@ class command_line_arguments:
                     type=json.loads,
                     required=input_dtypes.value,
                     nargs='+',
-                    help=
-                    "JSON dictionaries of (column: type) pairs to cast columns to"
+                    help="JSON dictionaries of (column: type) pairs to cast columns to"
                 )
             if input_pandas_kwargs:
                 parser.add_argument("--input_pandas_kwargs",
@@ -252,6 +258,16 @@ class command_line_arguments:
                 nargs='+',
                 help="Locations of secrets injected by Vault. Default: '" +
                 str(self.__default_secret_locations) + "'.")
+            
+            if secret_location_names:
+                parser.add_argument(
+                    "--secret_location_names",
+                    type=str,
+                    required=secret_location_names.value,
+                    nargs='+',
+                    help="Comma separated list of names corresponding to each input file"
+                )
+        
         if default_file_type:
             parser.add_argument(
                 "--default_file_type",
