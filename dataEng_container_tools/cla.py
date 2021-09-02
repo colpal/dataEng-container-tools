@@ -130,6 +130,8 @@ class command_line_arguments:
                  input_dtypes=None,
                  running_local=None,
                  identifying_tags=None,
+                 input_pandas_kwargs=None,
+                 output_pandas_kwargs=None,
                  parser=None):
         """Initializes command_line_arguments with desired configuration.
 
@@ -171,6 +173,8 @@ class command_line_arguments:
         self.__description = description
         self.__input_dtypes = input_dtypes
         self.__running_local = running_local
+        self.__input_pandas_kwargs = input_pandas_kwargs
+        self.__output_pandas_kwargs = output_pandas_kwargs
         parser = parser if parser else argparse.ArgumentParser(
             description=description)
         if input_files:
@@ -191,6 +195,11 @@ class command_line_arguments:
                                 required=input_files.value,
                                 nargs='+',
                                 help="Filenames to read file from.")
+            parser.add_argument("--input_delimiters",
+                                type=str,
+                                required=False,
+                                nargs='+',
+                                help="Delimiters for input files") 
             if input_dtypes:
                 parser.add_argument(
                     "--input_dtypes",
@@ -200,11 +209,12 @@ class command_line_arguments:
                     help=
                     "JSON dictionaries of (column: type) pairs to cast columns to"
                 )
-            parser.add_argument("--input_delimiters",
-                                type=str,
-                                required=False,
-                                nargs='+',
-                                help="Delimiters for input files")
+            if input_pandas_kwargs:
+                parser.add_argument("--input_pandas_kwargs",
+                    type=json.loads,
+                    required=input_pandas_kwargs.value,
+                    help="JSON dictionary of additional arguments for reading a file to a pandas dataframe")
+           
         if output_files:
             parser.add_argument("--output_bucket_names",
                                 type=str,
@@ -228,6 +238,11 @@ class command_line_arguments:
                                 required=False,
                                 nargs='+',
                                 help="Delimiters for output files")
+            if output_pandas_kwargs:
+                parser.add_argument("--output_pandas_kwargs",
+                    type=json.loads,
+                    required=output_pandas_kwargs.value,
+                    help="JSON dictionary of additional arguments for reading a file to a pandas dataframe")
         if secret_locations:
             parser.add_argument(
                 "--secret_locations",
@@ -398,7 +413,11 @@ class command_line_arguments:
             except ValueError:
                 print(item, "is not a properly formatted json file.")
         return return_list
-
+    
+    def get_pandas_kwargs(self):
+        kwargs = (self.__args.input_pandas_kwargs,self.__args.output_pandas_kwargs)
+        return kwargs
+    
     def check_args(self):
         """Ensures arguments are present and valid.
         """
