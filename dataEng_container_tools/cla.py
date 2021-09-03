@@ -122,17 +122,16 @@ class command_line_arguments:
 
     def __init__(self,
                  input_files=None,
-                 input_file_names=None,
                  output_files=None,
-                 output_file_names=None,
                  secret_locations=None,
-                 secret_location_names=None,
                  default_file_type=None,
                  custom_inputs=None,
                  description=None,
                  input_dtypes=None,
                  running_local=None,
                  identifying_tags=None,
+                 input_pandas_kwargs=None,
+                 output_pandas_kwargs=None,
                  parser=None):
         """Initializes command_line_arguments with desired configuration.
 
@@ -169,20 +168,18 @@ class command_line_arguments:
                 Defaults to False.
         """
         self.__input_files = input_files
-        self.__input_file_names = input_file_names
         self.__output_files = output_files
-        self.__output_file_names = output_file_names
         self.__secret_locations = secret_locations
-        self.__secret_location_names = secret_location_names
         self.__default_file_type = default_file_type
         self.__custom_inputs = custom_inputs
         self.__description = description
         self.__input_dtypes = input_dtypes
         self.__running_local = running_local
+        self.__input_pandas_kwargs = input_pandas_kwargs
+        self.__output_pandas_kwargs = output_pandas_kwargs
         parser = parser if parser else argparse.ArgumentParser(
             description=description)
         if input_files:
-            
             parser.add_argument("--input_bucket_names",
                                 type=str,
                                 required=input_files.value,
@@ -200,31 +197,26 @@ class command_line_arguments:
                                 required=input_files.value,
                                 nargs='+',
                                 help="Filenames to read file from.")
-            
             parser.add_argument("--input_delimiters",
                                 type=str,
                                 required=False,
                                 nargs='+',
-                                help="Delimiters for input files")
-
+                                help="Delimiters for input files") 
             if input_dtypes:
                 parser.add_argument(
                     "--input_dtypes",
                     type=json.loads,
                     required=input_dtypes.value,
                     nargs='+',
-                    help="JSON dictionaries of (column: type) pairs to cast columns to"
+                    help=
+                    "JSON dictionaries of (column: type) pairs to cast columns to"
                 )
-            
-            if input_file_names:
-                parser.add_argument(
-                    "--input_file_names",
-                    type=str,
-                    required=input_file_names.value,
-                    nargs='+',
-                    help="Comma separated list of names corresponding to each input file"
-                )
-        
+            if input_pandas_kwargs:
+                parser.add_argument("--input_pandas_kwargs",
+                    type=json.loads,
+                    required=input_pandas_kwargs.value,
+                    help="JSON dictionary of additional arguments for reading a file to a pandas dataframe")
+           
         if output_files:
             parser.add_argument("--output_bucket_names",
                                 type=str,
@@ -248,15 +240,11 @@ class command_line_arguments:
                                 required=False,
                                 nargs='+',
                                 help="Delimiters for output files")
-
-            if output_file_names:
-                parser.add_argument(
-                    "--output_file_names",
-                    type=str,
-                    required=output_file_names.value,
-                    nargs='+',
-                    help="Comma separated list of names corresponding to each output file"
-                )
+            if output_pandas_kwargs:
+                parser.add_argument("--output_pandas_kwargs",
+                    type=json.loads,
+                    required=output_pandas_kwargs.value,
+                    help="JSON dictionary of additional arguments for reading a file to a pandas dataframe")
         if secret_locations:
             parser.add_argument(
                 "--secret_locations",
@@ -266,16 +254,6 @@ class command_line_arguments:
                 nargs='+',
                 help="Locations of secrets injected by Vault. Default: '" +
                 str(self.__default_secret_locations) + "'.")
-            
-            if secret_location_names:
-                parser.add_argument(
-                    "--secret_location_names",
-                    type=str,
-                    required=secret_location_names.value,
-                    nargs='+',
-                    help="Comma separated list of names corresponding to each input file"
-                )
-        
         if default_file_type:
             parser.add_argument(
                 "--default_file_type",
@@ -368,19 +346,14 @@ class command_line_arguments:
             return []
         constant_bucket = False
         bucket_name = ''
-        names_list=[]
-        files_list=[]
-        output = {}
-
-        if len(self.__args.input_bucket_names) == 1: ## 'If all input files are from the same bucket'
-            constant_bucket = True #'Boolean for above condition
-            bucket_name = self.__args.input_bucket_names[0] #assign the bucket_name as args bucket name.
-        for pos, filename in enumerate(self.__args.input_filenames): #for each filename and it's position
-            if not constant_bucket: # if there are multiple buckets
+        output = []
+        if len(self.__args.input_bucket_names) == 1:
+            constant_bucket = True
+            bucket_name = self.__args.input_bucket_names[0]
+        for pos, filename in enumerate(self.__args.input_filenames):
+            if not constant_bucket:
                 bucket_name = self.__args.input_bucket_names[pos]
-            files_list.append(f"gs://{bucket_name}/{self.__args.input_paths[pos]}/{filename}".replace("/ /","/").replace("/./","/").replace("//","/"))
-            names_list.append(self.__args.input_file_names[pos])
-            output=dict(zip(names_list, files_list))
+            output.append(f"gs://{bucket_name}/{self.__args.input_paths[pos]}/{filename}".replace("/ /","/").replace("/./","/").replace("//","/"))
         return output
 
     def get_output_uris(self):
@@ -442,7 +415,11 @@ class command_line_arguments:
             except ValueError:
                 print(item, "is not a properly formatted json file.")
         return return_list
-
+    
+    def get_pandas_kwargs(self):
+        kwargs = (self.__args.input_pandas_kwargs,self.__args.output_pandas_kwargs)
+        return kwargs
+    
     def check_args(self):
         """Ensures arguments are present and valid.
         """

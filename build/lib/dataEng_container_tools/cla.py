@@ -133,6 +133,8 @@ class command_line_arguments:
                  input_dtypes=None,
                  running_local=None,
                  identifying_tags=None,
+                 input_pandas_kwargs=None,
+                 output_pandas_kwargs=None,
                  parser=None):
         """Initializes command_line_arguments with desired configuration.
 
@@ -179,6 +181,8 @@ class command_line_arguments:
         self.__description = description
         self.__input_dtypes = input_dtypes
         self.__running_local = running_local
+        self.__input_pandas_kwargs = input_pandas_kwargs
+        self.__output_pandas_kwargs = output_pandas_kwargs
         parser = parser if parser else argparse.ArgumentParser(
             description=description)
         if input_files:
@@ -200,12 +204,13 @@ class command_line_arguments:
                                 required=input_files.value,
                                 nargs='+',
                                 help="Filenames to read file from.")
-            
+
             parser.add_argument("--input_delimiters",
                                 type=str,
                                 required=False,
                                 nargs='+',
                                 help="Delimiters for input files")
+
 
             if input_dtypes:
                 parser.add_argument(
@@ -215,6 +220,7 @@ class command_line_arguments:
                     nargs='+',
                     help="JSON dictionaries of (column: type) pairs to cast columns to"
                 )
+
             
             if input_file_names:
                 parser.add_argument(
@@ -225,6 +231,14 @@ class command_line_arguments:
                     help="Comma separated list of names corresponding to each input file"
                 )
         
+
+            if input_pandas_kwargs:
+                parser.add_argument("--input_pandas_kwargs",
+                    type=json.loads,
+                    required=input_pandas_kwargs.value,
+                    help="JSON dictionary of additional arguments for reading a file to a pandas dataframe")
+           
+
         if output_files:
             parser.add_argument("--output_bucket_names",
                                 type=str,
@@ -249,6 +263,7 @@ class command_line_arguments:
                                 nargs='+',
                                 help="Delimiters for output files")
 
+
             if output_file_names:
                 parser.add_argument(
                     "--output_file_names",
@@ -257,6 +272,13 @@ class command_line_arguments:
                     nargs='+',
                     help="Comma separated list of names corresponding to each output file"
                 )
+
+            if output_pandas_kwargs:
+                parser.add_argument("--output_pandas_kwargs",
+                    type=json.loads,
+                    required=output_pandas_kwargs.value,
+                    help="JSON dictionary of additional arguments for reading a file to a pandas dataframe")
+
         if secret_locations:
             parser.add_argument(
                 "--secret_locations",
@@ -381,6 +403,8 @@ class command_line_arguments:
             files_list.append(f"gs://{bucket_name}/{self.__args.input_paths[pos]}/{filename}".replace("/ /","/").replace("/./","/").replace("//","/"))
             names_list.append(self.__args.input_file_names[pos])
             output=dict(zip(names_list, files_list))
+            output.append(f"gs://{bucket_name}/{self.__args.input_paths[pos]}/{filename}".replace("/ /","/").replace("/./","/").replace("//","/"))
+
         return output
 
     def get_output_uris(self):
@@ -442,7 +466,11 @@ class command_line_arguments:
             except ValueError:
                 print(item, "is not a properly formatted json file.")
         return return_list
-
+    
+    def get_pandas_kwargs(self):
+        kwargs = (self.__args.input_pandas_kwargs,self.__args.output_pandas_kwargs)
+        return kwargs
+    
     def check_args(self):
         """Ensures arguments are present and valid.
         """
