@@ -2,11 +2,11 @@
 import setuptools
 
 with open("README.md", "r") as fh:
-    long_description = fh.read()
+    long_description = fh.read() 
 
 setuptools.setup(
     name="dataEng-container-tools",
-    version="0.5.3",
+    version="0.5.6",
     author="Alexander Saff",
     author_email="alexander_saff@colpal.com",
     description="A package containing tools for data engineering containers.",
