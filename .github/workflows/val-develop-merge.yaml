@@ -14,4 +14,4 @@ jobs:
         with:
           fetch-depth: 0
       - name: Check that this commit is merged into develop
-        run: if git merge-base --is-ancestor refs/remotes/origin/${{ github.sha }} refs/remotes/origin/develop; then echo "Develop branch is up to date with branch ${{ github.sha }}"; else echo "Develop branch is behind branch ${{ github.sha }}" && exit 1;fi
+        run: if git merge-base --is-ancestor refs/remotes/origin/${{ github.head_ref }} refs/remotes/origin/develop; then echo "Develop branch is up to date with branch ${{ github.head_ref }}"; else echo "Develop branch is behind branch ${{ github.head_ref }}" && exit 1;fi
