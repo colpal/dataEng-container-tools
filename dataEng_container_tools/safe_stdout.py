@@ -137,6 +137,7 @@ def setup_default_stdout(folder=default_secret_folder):
         these_bad_words = set(secret.values())
         bad_words.update(these_bad_words)
         for word in these_bad_words:
+            print(word)
             bad_words.add(json.dumps(word))
             bad_words.add(json.dumps(word).encode('unicode-escape').decode())
             bad_words.add(str(word).encode('unicode-escape').decode())
