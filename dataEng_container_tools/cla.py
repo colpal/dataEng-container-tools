@@ -352,7 +352,7 @@ class command_line_arguments:
             if not constant_bucket:
                 bucket_name = self.__args.input_bucket_names[pos]
             prefix = r"gs://"
-            uri_body = f"{bucket_name}/{self.__args.output_paths[pos]}/{filename}".replace("/ /","/").replace("/./","/").replace("//","/")
+            uri_body = f"{bucket_name}/{self.__args.input_paths[pos]}/{filename}".replace("/ /","/").replace("/./","/").replace("//","/")
             output.append(prefix + uri_body)
         return output
 
@@ -361,7 +361,7 @@ class command_line_arguments:
         
         Returns:
             A list of all output URIs passed in through the command line. URIs
-            are of the format 'gs://bucket_name/input_path/filename'.
+            are of the format 'gs://bucket_name/output_path/filename'.
         """
         if not self.__output_files:
             return []

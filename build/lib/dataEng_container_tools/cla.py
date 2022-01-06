@@ -352,7 +352,7 @@ class command_line_arguments:
             if not constant_bucket:
                 bucket_name = self.__args.input_bucket_names[pos]
             prefix = r"gs://"
-            uri_body = f"{bucket_name}/{self.__args.output_paths[pos]}/{filename}".replace("/ /","/").replace("/./","/").replace("//","/")
+            uri_body = f"{bucket_name}/{self.__args.input_paths[pos]}/{filename}".replace("/ /","/").replace("/./","/").replace("//","/")
             output.append(prefix + uri_body)
         return output
 
