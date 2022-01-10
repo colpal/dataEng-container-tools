@@ -140,5 +140,5 @@ def setup_default_stdout(folder=default_secret_folder):
             print(word)
             bad_words.add(json.dumps(word))
             bad_words.add(json.dumps(word).encode('unicode-escape').decode())
-            bad_words.add(str(word).encode('unicode-escape').decode())
+            bad_words.add(str(str(word).encode('unicode-escape').decode()))
     sys.stdout = safe_stdout(bad_words)
