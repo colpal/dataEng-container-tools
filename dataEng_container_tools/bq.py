@@ -84,7 +84,7 @@ class BQ:
         filename = uri_parts[-1]
         return bucket,  path, filename
 
-    def send_to_gcs(self,query,project_id,output_uri):
+    def send_to_gcs(self,query,project_id,output_uri,delimiter = ","):
         job_results = {}
         
         client = self.bq_client
@@ -102,12 +102,9 @@ class BQ:
             "total_rows_returned" : queryJob_results.total_rows
         }
         
-        bucket, path, full_filename = self.__get_parts(output_uri)
+        filename = self.__get_parts(output_uri)[-1]
 
-        file_name_parts = full_filename.split(".")
-
-        output_type = file_name_parts[-1]
-        file_name = full_filename.replace(f'.{output_type}',"")
+        output_type = filename.split(".")[-1]
 
         if output_type == "avro":
             dest_format = DestinationFormat().AVRO    
@@ -119,13 +116,13 @@ class BQ:
             dest_format = DestinationFormat().CSV
         
         if dest_format == DestinationFormat().CSV:
-            config = ExtractJobConfig(destination_format = dest_format, field_delimiter = args.output_field_delimiter)
+            config = ExtractJobConfig(destination_format = dest_format, field_delimiter = delimiter)
         else:
             config = ExtractJobConfig(destination_format = dest_format)
 
-        extractJob = ExtractJob( self.__create_job_id(project_id,"extractJob"),
-                queryJob_results.destination, output_uri, client, job_config=config
-            )
+        extractJob = ExtractJob(self.__create_job_id(project_id,"extractJob"),
+            queryJob_results.destination, output_uri, client, job_config=config
+        )
             
         extractJob_results = extractJob.result()
         
