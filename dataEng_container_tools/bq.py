@@ -22,6 +22,7 @@ from google.cloud import bigquery as GBQ
 from google.cloud.bigquery.job import QueryJob, QueryJobConfig
 from google.cloud.bigquery.job import ExtractJob, ExtractJobConfig
 from google.cloud.bigquery.job import LoadJob, LoadJobConfig
+from google.cloud.bigquery.job import CopyJob, CopyJobConfig
 from google.cloud.bigquery.job import WriteDisposition
 from google.cloud.bigquery.enums import SourceFormat
 from google.cloud.bigquery import DatasetReference, TableReference
@@ -134,7 +135,7 @@ class BQ:
         
         return job_results
    
-    def load_from_gcs(self,table_id,input_uri,):
+    def load_from_gcs(self,table_id,input_uri):
         job_results = {}
         
         client = self.bq_client
@@ -152,3 +153,12 @@ class BQ:
         job_results["loadJob"] = self.__get_results(loadJob)
         
         return job_results
+    
+    def copy_from_tables(self,destination_table,source_tables):
+        job_results = {}
+        
+        # copyJob = CopyJob()
+        
+        # job_results["copyJob"] = self.__get_results(copyJob)
+        
+        # return job_results
