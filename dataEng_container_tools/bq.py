@@ -11,7 +11,6 @@ Typical usage example:
     #
     result = bq.LoadJob(args)
 """
-
 import json
 import pandas as pd
 import os
@@ -19,17 +18,13 @@ import string
 import random
 
 from datetime import datetime
-from dataEng_container_tools.db import get_secrets
 from google.cloud import bigquery as GBQ
 from google.cloud.bigquery.job import QueryJob, QueryJobConfig
 from google.cloud.bigquery.job import ExtractJob, ExtractJobConfig
 from google.cloud.bigquery.job import LoadJob, LoadJobConfig
-from google.cloud.bigquery.job import DestinationFormat
 from google.cloud.bigquery.job import WriteDisposition
-
-
-
-from dataEng_container_tools.exceptions import StorageCredentialNotFound
+from google.cloud.bigquery.enums import SourceFormat
+from google.cloud.bigquery import DatasetReference, TableReference
 
 
 class BQ:
@@ -84,59 +79,76 @@ class BQ:
         filename = uri_parts[-1]
         return bucket,  path, filename
 
+    def __get_file_type(self, suffix):
+        if suffix == "parquet":
+            file_type = SourceFormat.PARQUET
+        elif suffix == "json":
+            file_type = SourceFormat.NEWLINE_DELIMITED_JSON
+        elif suffix == "avro":
+            file_type = SourceFormat.AVRO
+        else:
+            file_type = SourceFormat.CSV
+        return file_type
+
+    def __get_results(self,bq_job):  
+        bq_job_results = bq_job.result()
+        
+        job_result = {
+            "start_time" : bq_job.started.ctime(),
+            "end_time" : bq_job.ended.ctime(),
+            "job_errors" : bq_job.errors,
+            "total_bytes_billed" : bq_job.total_bytes_billed,
+            "total_bytes_processed" : bq_job.total_bytes_processed,
+            "total_rows_returned" : bq_job_results.total_rows,
+            "job_results" : bq_job_results
+        }
+        
+        try:
+            job_result["query_plan"] = bq_job.query_plan
+        except:
+            "No query to plan"
+
+        return job_result
+    
     def send_to_gcs(self,query,project_id,output_uri,delimiter = ","):
         job_results = {}
         
         client = self.bq_client
         
         queryJob = QueryJob(self.__create_job_id(project_id,"queryJob"), query, client)
-        queryJob_results = queryJob.result()
+        job_results["queryJob"] = self.__get_results(queryJob)
         
-        job_results["queryJob"] = {
-            "start_time" : queryJob.started.ctime(),
-            "end_time" : queryJob.ended.ctime(),
-            "query_errors" : queryJob.errors,
-            "total_bytes_billed" : queryJob.total_bytes_billed,
-            "total_bytes_processed" : queryJob.total_bytes_processed,
-            "query_plan" : queryJob.query_plan,
-            "total_rows_returned" : queryJob_results.total_rows
-        }
+        output_type = output_uri.split(".")[-1]
+        dest_format = self.__get_file_type(output_type)
         
-        filename = self.__get_parts(output_uri)[-1]
-
-        output_type = filename.split(".")[-1]
-
-        if output_type == "avro":
-            dest_format = DestinationFormat().AVRO    
-        elif output_type == "parquet":
-            dest_format = DestinationFormat().PARQUET
-        elif output_type == "json":
-            dest_format = DestinationFormat().NEWLINE_DELIMITED_JSON
-        else:
-            dest_format = DestinationFormat().CSV
-        
-        if dest_format == DestinationFormat().CSV:
+        if dest_format == SourceFormat.CSV:
             config = ExtractJobConfig(destination_format = dest_format, field_delimiter = delimiter)
         else:
             config = ExtractJobConfig(destination_format = dest_format)
 
         extractJob = ExtractJob(self.__create_job_id(project_id,"extractJob"),
-            queryJob_results.destination, output_uri, client, job_config=config
+            job_results["queryJob"]["job_results"].destination, output_uri, client, job_config=config
         )
             
-        extractJob_results = extractJob.result()
-        
-        job_results["extractJob"] = {
-            "start_time" : extractJob.started.ctime(),
-            "end_time" : extractJob.ended.ctime(),
-            "query_errors" : extractJob.errors,
-            "total_bytes_billed" : extractJob.total_bytes_billed,
-            "total_bytes_processed" : extractJob.total_bytes_processed,
-            "query_plan" : extractJob.query_plan,
-            "total_rows_returned" : extractJob_results.total_rows
-        }
+        job_results["extractJob"] = self.__get_results(extractJob)
         
         return job_results
+   
+    def load_from_gcs(self,table_id,input_uri,):
+        job_results = {}
         
-    def load_from_gcs(self,):
-        pass
+        client = self.bq_client
+        
+        project_id,ds_id,table_name = table_id.split(".")
+        dataset = DatasetReference(project_id,ds_id)
+        output_table = TableReference(dataset,table_name)
+        
+        ending = input_uri.split(".")[-1]
+        file_type = self.__get_file_type(ending)
+        
+        config = LoadJobConfig(autodetect=True, write_disposition=WriteDisposition.WRITE_APPEND,source_format=file_type)
+        loadJob = LoadJob(self.__create_job_id(project_id,"loadJob"), input_uri, output_table, client, job_config=config)
+
+        job_results["loadJob"] = self.__get_results(loadJob)
+        
+        return job_results
