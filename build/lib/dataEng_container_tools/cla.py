@@ -22,7 +22,7 @@ import argparse
 import json
 import sys
 from enum import Enum
-from .safe_stdout import setup_stdout, default_gcs_secret_locations, secrets_files
+from .safe_stdout import setup_stdout, default_secret_locations, secrets_files
 import os
 
 
@@ -118,7 +118,7 @@ class command_line_arguments:
     Includes helper functions for using the command line inputs.
     """
 
-    __default_secret_locations = default_gcs_secret_locations
+    __default_secret_locations = default_secret_locations
 
     def __init__(self,
                  input_files=None,
@@ -361,7 +361,7 @@ class command_line_arguments:
         
         Returns:
             A list of all output URIs passed in through the command line. URIs
-            are of the format 'gs://bucket_name/input_path/filename'.
+            are of the format 'gs://bucket_name/output_path/filename'.
         """
         if not self.__output_files:
             return []

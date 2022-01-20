@@ -64,22 +64,25 @@ class gcs_file_io:
             self.gcs_client = storage.Client.from_service_account_json(
                 'gcs-sa.json')
 
-    def get_bq_client(self, PATH):
-        """Returns client object to perform CRUD operations on a google.cloud library
-        library = google.cloud library
-        :type PATH: object
-        """
+    ######################################
+    '''Use new BQ class'''
+    ######################################
+    # def get_bq_client(self, PATH):
+    #     """Returns client object to perform CRUD operations on a google.cloud library
+    #     library = google.cloud library
+    #     :type PATH: object
+    #     """
 
-        try:
-            cred = get_secrets(PATH)
-            key = cred["key"]
-        except KeyError as ke:
-            raise StorageCredentialNotFound("Storage credentials not"
-                                            " mounted for gcs ")
-        bq_sa = json.loads(key)
-        with open('bq-sa.json', 'w') as json_file:
-            json.dump(bq_sa, json_file)
-        return GBQ.Client.from_service_account_json('bq-sa.json')
+    #     try:
+    #         cred = get_secrets(PATH)
+    #         key = cred["key"]
+    #     except KeyError as ke:
+    #         raise StorageCredentialNotFound("Storage credentials not"
+    #                                         " mounted for gcs ")
+    #     bq_sa = json.loads(key)
+    #     with open('bq-sa.json', 'w') as json_file:
+    #         json.dump(bq_sa, json_file)
+    #     return GBQ.Client.from_service_account_json('bq-sa.json')
 
     def __get_parts(self, gcs_uri):
         if gcs_uri.startswith('gs://'):
