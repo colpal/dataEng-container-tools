@@ -106,6 +106,23 @@ class command_line_argument_type(Enum):
     """
     OPTIONAL = False
     REQUIRED = True
+    
+class command_line_secret:
+    """Takes in a dictionary of secret names and locations and adds the keys and values to the 
+    class attributes. This allows secrets to be called by name but not in a dictionary fashion.
+    
+    Attributes:
+        GCS: Default location for GCP storage unless overwritten.
+        BQ: Default location for GCP BigQuery unless overwritten.
+        Others: Keys from input of the init function.
+    """
+    
+    GCS = default_secret_locations["GCS"]
+    BQ = default_secret_locations["BQ"]
+    # SF = default_secret_locations["SF"] Not Yet Added
+    
+    def __init__(self,kwargs):
+        self.__dict__.update(**kwargs)
 
 
 class command_line_arguments:
@@ -246,10 +263,9 @@ class command_line_arguments:
         if secret_locations:
             parser.add_argument(
                 "--secret_locations",
-                type=str,
+                type=json.loads,
                 required=secret_locations.value,
                 default=self.__default_secret_locations,
-                nargs='+',
                 help="Locations of secrets injected by Vault. Default: '" +
                 str(self.__default_secret_locations) + "'.")
         if default_file_type:
