@@ -291,7 +291,6 @@ class command_line_arguments:
             for item in custom_inputs:
                 parser.add_argument("--" + item.name,
                                     action=item.action,
-                                    nargs=item.nargs,
                                     const=item.const,
                                     default=item.default,
                                     type=item.data_type,
