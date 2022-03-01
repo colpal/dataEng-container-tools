@@ -291,14 +291,9 @@ class command_line_arguments:
             for item in custom_inputs:
                 if item.action:
                     parser.add_argument("--" + item.name,
-                                        action=item.action,
-                                        const=item.const,
-                                        default=item.default,
-                                        type=item.data_type,
                                         required=item.required,
-                                        help=item.help_message,
-                                        metavar=item.metavar,
-                                        dest=item.dest)
+                                        action=item.action,
+                                        help=item.help_message)
                 else:
                     parser.add_argument("--" + item.name,
                                         nargs=item.nargs,
@@ -371,7 +366,7 @@ class command_line_arguments:
         
         Returns:
             A list of all output URIs passed in through the command line. URIs
-            are of the format 'gs://bucket_name/input_path/filename'.
+            are of the format 'gs://bucket_name/output_path/filename'.
         """
         if not self.__output_files:
             return []
