@@ -289,16 +289,27 @@ class command_line_arguments:
                                 help="The pod name")
         if custom_inputs:
             for item in custom_inputs:
-                parser.add_argument("--" + item.name,
-                                    action=item.action,
-                                    const=item.const,
-                                    default=item.default,
-                                    type=item.data_type,
-                                    choices=item.choices,
-                                    required=item.required,
-                                    help=item.help_message,
-                                    metavar=item.metavar,
-                                    dest=item.dest)
+                if item.action:
+                    parser.add_argument("--" + item.name,
+                                        action=item.action,
+                                        const=item.const,
+                                        default=item.default,
+                                        type=item.data_type,
+                                        required=item.required,
+                                        help=item.help_message,
+                                        metavar=item.metavar,
+                                        dest=item.dest)
+                else:
+                    parser.add_argument("--" + item.name,
+                                        nargs=item.nargs,
+                                        const=item.const,
+                                        default=item.default,
+                                        type=item.data_type,
+                                        choices=item.choices,
+                                        required=item.required,
+                                        help=item.help_message,
+                                        metavar=item.metavar,
+                                        dest=item.dest)
         self.__args = parser.parse_args()
         print("CLA Input:", self)
         if identifying_tags:
