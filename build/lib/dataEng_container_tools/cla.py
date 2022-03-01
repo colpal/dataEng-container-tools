@@ -297,7 +297,6 @@ class command_line_arguments:
                 else:
                     parser.add_argument("--" + item.name,
                                         nargs=item.nargs,
-                                        const=item.const,
                                         default=item.default,
                                         type=item.data_type,
                                         choices=item.choices,
