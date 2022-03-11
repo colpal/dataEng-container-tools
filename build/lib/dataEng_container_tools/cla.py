@@ -361,7 +361,7 @@ class command_line_arguments:
         
         Returns:
             A list of all output URIs passed in through the command line. URIs
-            are of the format 'gs://bucket_name/input_path/filename'.
+            are of the format 'gs://bucket_name/output_path/filename'.
         """
         if not self.__output_files:
             return []
