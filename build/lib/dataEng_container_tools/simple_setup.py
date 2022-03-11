@@ -18,7 +18,8 @@ Typical usage example:
 """
 
 from .gcs import gcs_file_io
-from .safe_stdout import default_gcs_secret_locations, default_secret_folder
+from .bq import BQ
+from .safe_stdout import default_secret_locations, default_secret_folder
 import argparse
 import json
 import os
@@ -57,7 +58,7 @@ class simple_setup:
         other_args = {}
         found_secrets = {}
         secret_location_args = {}
-        gcs_secret_location = default_gcs_secret_locations[0]
+        gcs_secret_location, bq_secret_location = default_secret_locations 
         parser = argparse.ArgumentParser()
         for name in argument_names:
             if "input" in name:
@@ -117,6 +118,8 @@ class simple_setup:
             secret_location_args[arg] = args.__dict__[arg]
             if self.__is_storage_secret(arg, secret_location_args[arg]):
                 gcs_secret_location = secret_location_args[arg]
+            if self.__is_bq_secret(arg, secret_location_args[arg]):
+                bq_secret_location = secret_location_args[arg]
         for secret in self.__find_secrets():
             name = secret.split('/')[-1].strip('.json')
             found_secrets[name] = secret
@@ -128,9 +131,17 @@ class simple_setup:
         print(self.get_args())
         self.__gcs_io = gcs_file_io(gcs_secret_location=gcs_secret_location,
                                     local=other_args['running_local'])
+        self.__bq = BQ(bq_secret_location=bq_secret_location)
 
     def __is_storage_secret(self, word1, word2):
         words = ['gcs', 'storage', 'GCS', 'STORAGE']
+        for word in words:
+            if (word in word1) or (word in word2):
+                return True
+        return False
+    
+    def __is_bq_secret(self, word1, word2):
+        words = ['bq','BQ','bigquery','BigQuery','bigQuery']
         for word in words:
             if (word in word1) or (word in word2):
                 return True

@@ -22,7 +22,7 @@ import argparse
 import json
 import sys
 from enum import Enum
-from .safe_stdout import setup_stdout, default_gcs_secret_locations, secrets_files
+from .safe_stdout import setup_stdout, default_secret_locations, secrets_files
 import os
 
 
@@ -106,6 +106,23 @@ class command_line_argument_type(Enum):
     """
     OPTIONAL = False
     REQUIRED = True
+    
+class command_line_secret:
+    """Takes in a dictionary of secret names and locations and adds the keys and values to the 
+    class attributes. This allows secrets to be called by name but not in a dictionary fashion.
+    
+    Attributes:
+        GCS: Default location for GCP storage unless overwritten.
+        BQ: Default location for GCP BigQuery unless overwritten.
+        Others: Keys from input of the init function.
+    """
+    
+    GCS = default_secret_locations["GCS"]
+    BQ = default_secret_locations["BQ"]
+    # SF = default_secret_locations["SF"] Not Yet Added
+    
+    def __init__(self,kwargs):
+        self.__dict__.update(**kwargs)
 
 
 class command_line_arguments:
@@ -118,7 +135,7 @@ class command_line_arguments:
     Includes helper functions for using the command line inputs.
     """
 
-    __default_secret_locations = default_gcs_secret_locations
+    __default_secret_locations = default_secret_locations
 
     def __init__(self,
                  input_files=None,
@@ -243,15 +260,16 @@ class command_line_arguments:
                     type=json.loads,
                     required=output_pandas_kwargs.value,
                     help="JSON dictionary of additional arguments for reading a file to a pandas dataframe")
+        
         if secret_locations:
             parser.add_argument(
                 "--secret_locations",
-                type=str,
+                type=json.loads,
                 required=secret_locations.value,
                 default=self.__default_secret_locations,
-                nargs='+',
-                help="Locations of secrets injected by Vault. Default: '" +
+                help="Dictionary of the locations of secrets injected by Vault. Default: '" +
                 str(self.__default_secret_locations) + "'.")
+        
         if default_file_type:
             parser.add_argument(
                 "--default_file_type",
@@ -262,6 +280,7 @@ class command_line_arguments:
                 help=
                 "How to handle input/output files if no file extension found. Choice of 'parquet', 'csv', 'pkl', and 'json'. Default 'parquet'."
             )
+        
         if running_local:
             parser.add_argument(
                 "--running_local",
@@ -270,6 +289,7 @@ class command_line_arguments:
                 default=False,
                 help="If the container is running locally (no contact with GCP)."
             )
+        
         if identifying_tags:
             parser.add_argument("--dag_id",
                                 type=str,
@@ -287,6 +307,7 @@ class command_line_arguments:
                                 type=str,
                                 required=identifying_tags.value,
                                 help="The pod name")
+        
         if custom_inputs:
             for item in custom_inputs:
                 if item.action:
@@ -308,14 +329,16 @@ class command_line_arguments:
                                         dest=item.dest)
         self.__args = parser.parse_args()
         print("CLA Input:", self)
+        
         if identifying_tags:
             os.environ["DAG_ID"] = self.__args.dag_id
             os.environ["RUN_ID"] = self.__args.run_id
             os.environ["NAMESPACE"] = self.__args.namespace
             os.environ["POD_NAME"] = self.__args.pod_name
         self.check_args()
+        
         if self.__secret_locations:
-            setup_stdout(self.__args.secret_locations)
+            setup_stdout(self.__args.secret_locations.values())
 
     def __str__(self):
         return self.__args.__str__()
@@ -394,7 +417,7 @@ class command_line_arguments:
             found automatically.
         """
         if self.__secret_locations:
-            return self.__args.secret_locations
+            return command_line_secret(self.__args.secret_locations)
         if len(secrets_files) > 0:
             return secrets_files
         return None
