@@ -56,13 +56,13 @@ class safe_stdout:
         """
         message = str(message)
         for bad_word in self.__bad_words:
-            bad_word_location = message.find(bad_word)
-            bad_word_length = self.__bad_words[bad_word]
+            bad_word_location = message.find(str(bad_word))
+            bad_word_length = self.__bad_words[str(bad_word)]
             while (bad_word_location != -1):
                 message = (message[0:bad_word_location] +
                            '*' * bad_word_length +
                            message[bad_word_location + bad_word_length:])
-                bad_word_location = message.find(bad_word)
+                bad_word_location = message.find(str(bad_word))
         self.__old_stdout.write(message)
 
     def add_words(self, bad_words):
@@ -73,7 +73,7 @@ class safe_stdout:
             add to the list of words to censor in output.
         """
         for item in bad_words:
-            self.__bad_words[item] = len(item)
+            self.__bad_words[item] = len(str(item))
 
     def flush(self):
         pass
