@@ -310,18 +310,23 @@ class command_line_arguments:
         
         if custom_inputs:
             for item in custom_inputs:
-                parser.add_argument("--" + item.name,
-                                    action=item.action,
-                                    nargs=item.nargs,
-                                    const=item.const,
-                                    default=item.default,
-                                    type=item.data_type,
-                                    choices=item.choices,
-                                    required=item.required,
-                                    help=item.help_message,
-                                    metavar=item.metavar,
-                                    dest=item.dest)
-        
+                if item.action:
+                    parser.add_argument("--" + item.name,
+                                        required=item.required,
+                                        action=item.action,
+                                        help=item.help_message)
+                else:
+                    parser.add_argument("--" + item.name,
+                                        action=item.action,
+                                        nargs=item.nargs,
+                                        const=item.const,
+                                        default=item.default,
+                                        type=item.data_type,
+                                        choices=item.choices,
+                                        required=item.required,
+                                        help=item.help_message,
+                                        metavar=item.metavar,
+                                        dest=item.dest)
         self.__args = parser.parse_args()
         print("CLA Input:", self)
         
