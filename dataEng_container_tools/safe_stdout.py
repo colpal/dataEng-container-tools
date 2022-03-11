@@ -44,7 +44,7 @@ class safe_stdout:
         """
         self.__bad_words = {}
         for item in bad_words:
-            self.__bad_words[item] = len(item)
+            self.__bad_words[item] = len(str(item))
         self.__old_stdout = sys.stdout
 
     def write(self, message):
