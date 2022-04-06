@@ -327,7 +327,6 @@ class command_line_arguments:
                                         help=item.help_message,
                                         metavar=item.metavar,
                                         dest=item.dest)
-
         self.__args = parser.parse_args()
         print("CLA Input:", self)
 
