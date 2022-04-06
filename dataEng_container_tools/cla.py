@@ -14,7 +14,7 @@ Typical usage example:
 
     input_uris = my_inputs.get_input_uris()
     output_uris = my_inputs.get_output_uris()
-    secret_locations = my_inputs.get_secret_locations()                              
+    secret_locations = my_inputs.get_secret_locations()
     file_io = gcs_file_io(gcs_secret_location = secret_locations[0])
 """
 
@@ -27,15 +27,15 @@ import os
 
 
 class custom_command_line_argument:
-    """Class for creating custom command line arguments.  
+    """Class for creating custom command line arguments.
 
     This class is used for creating custom command line arguments. A
     list of these objects can be passed into `command_line_arguments` which
     will add them as command line arguments, parse the inputs, and return the results.
-    Objects of this class have all the same attributes available to `parser.add_argument()`.  
+    Objects of this class have all the same attributes available to `parser.add_argument()`.
 
     Attributes:
-        name: A string to Argument name.  
+        name: A string to Argument name.
         action: A string indicating the basic type of action to be taken when this argument is encountered at the command line.
         nargs: An integer indicating the number of command-line arguments that should be consumed.
         const: A constant value required by some action and nargs selections.
@@ -63,16 +63,16 @@ class custom_command_line_argument:
         """Initializes custom_command_line_arguments with desired configuration.
 
         Args:
-            name: A string to Argument name.  
-            action: A string indicating the basic type of action to be taken when this argument is encountered at the command line.  
-            nargs: An integer indicating the number of command-line arguments that should be consumed.  
-            const: A constant value required by some action and nargs selections.  
-            default: The value produced if the argument is absent from the command line and if it is absent from the namespace object.  
-            data_type: The type to which the command-line argument should be converted.  
-            choices: A container of the allowable values for the argument.  
-            required: A boolean indicating whether or not the command-line option may be omitted (optionals only).  
-            help_message: A string providing a brief description of what the argument does.  
-            metavar: A string indicating the name for the argument in usage messages.  
+            name: A string to Argument name.
+            action: A string indicating the basic type of action to be taken when this argument is encountered at the command line.
+            nargs: An integer indicating the number of command-line arguments that should be consumed.
+            const: A constant value required by some action and nargs selections.
+            default: The value produced if the argument is absent from the command line and if it is absent from the namespace object.
+            data_type: The type to which the command-line argument should be converted.
+            choices: A container of the allowable values for the argument.
+            required: A boolean indicating whether or not the command-line option may be omitted (optionals only).
+            help_message: A string providing a brief description of what the argument does.
+            metavar: A string indicating the name for the argument in usage messages.
             dest: A string indicating the name of the attribute to be added to the object returned by parse_args().
         """
         self.name = name
@@ -109,7 +109,7 @@ class command_line_argument_type(Enum):
 
 
 class command_line_secret:
-    """Takes in a dictionary of secret names and locations and adds the keys and values to the 
+    """Takes in a dictionary of secret names and locations and adds the keys and values to the
     class attributes. This allows secrets to be called by name but not in a dictionary fashion.
 
     Attributes:
@@ -310,17 +310,23 @@ class command_line_arguments:
 
         if custom_inputs:
             for item in custom_inputs:
-                parser.add_argument("--" + item.name,
-                                    action=item.action,
-                                    nargs=item.nargs,
-                                    const=item.const,
-                                    default=item.default,
-                                    type=item.data_type,
-                                    choices=item.choices,
-                                    required=item.required,
-                                    help=item.help_message,
-                                    metavar=item.metavar,
-                                    dest=item.dest)
+                if item.action:
+                    parser.add_argument("--" + item.name,
+                                        required=item.required,
+                                        action=item.action,
+                                        help=item.help_message)
+                else:
+                    parser.add_argument("--" + item.name,
+                                        action=item.action,
+                                        nargs=item.nargs,
+                                        const=item.const,
+                                        default=item.default,
+                                        type=item.data_type,
+                                        choices=item.choices,
+                                        required=item.required,
+                                        help=item.help_message,
+                                        metavar=item.metavar,
+                                        dest=item.dest)
 
         self.__args = parser.parse_args()
         print("CLA Input:", self)
