@@ -48,7 +48,7 @@ class safe_stdout:
         """
         self.__bad_words = {}
         for item in bad_words:
-            self.__bad_words[item] = len(item)
+            self.__bad_words[item] = len(str(item))
         self.__old_stdout = sys.stdout
 
     def write(self, message):
@@ -143,5 +143,5 @@ def setup_default_stdout(folder=default_secret_folder):
         for word in these_bad_words:
             bad_words.add(json.dumps(word))
             bad_words.add(json.dumps(word).encode('unicode-escape').decode())
-            bad_words.add(word.encode('unicode-escape').decode())
+            bad_words.add(str(str(word).encode('unicode-escape').decode()))
     sys.stdout = safe_stdout(bad_words)
