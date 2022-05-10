@@ -21,11 +21,8 @@ import json
 import os
 
 default_secret_folder = '/vault/secrets/'
-default_secret_locations = {
-    "GCS": default_secret_folder + 'gcp-sa-storage.json',
-    "BQ": default_secret_folder + 'gcp-sa-bq.json',
-    # "SF" : default_secret_folder + 'sf_creds.json' Not added yet
-}
+default_secret_locations = [default_secret_folder +
+                            'gcp-sa-storage.json', default_secret_folder + 'gcp-sa-bq.json']
 secrets_files = []
 
 
