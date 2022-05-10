@@ -154,7 +154,7 @@ class BQ:
         
         return job_results
     
-    def copy_from_tables(self,destination_table,source_tables):
+    def copy_tables(self,destination_table,source_tables):
         job_results = {}
         
         # copyJob = CopyJob()
