@@ -58,7 +58,9 @@ class simple_setup:
         other_args = {}
         found_secrets = {}
         secret_location_args = {}
-        gcs_secret_location, bq_secret_location = default_secret_locations 
+        gcs_secret_location = default_secret_locations["GCS"] 
+        bq_secret_location = default_secret_locations["BQ"] 
+
         parser = argparse.ArgumentParser()
         for name in argument_names:
             if "input" in name:
