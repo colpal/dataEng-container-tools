@@ -65,7 +65,7 @@ class gcs_file_io:
                 'gcs-sa.json')
 
     ######################################
-    '''Use new BQ class'''
+    '''Use new BQ module'''
     ######################################
     # def get_bq_client(self, PATH):
     #     """Returns client object to perform CRUD operations on a google.cloud library
@@ -131,7 +131,7 @@ class gcs_file_io:
         """
         if not pandas_kwargs:
             pandas_kwargs = {}
-            
+
         if self.local:
             file_path = gcs_uri
             file_like_object = open(gcs_uri)
@@ -160,10 +160,11 @@ class gcs_file_io:
             if self.local:
                 return pd.read_excel(file_path, dtype=dtype, header=header, engine='openpyxl') if dtype else \
                     pd.read_excel(file_path, header=header,
-                                                                                                                           engine='openpyxl')
+                                  engine='openpyxl')
             else:
                 return pd.read_excel(file_like_object, dtype=dtype, header=header, engine='openpyxl') if dtype else\
-                    pd.read_excel(file_like_object, header=header, engine='openpyxl', **pandas_kwargs)
+                    pd.read_excel(file_like_object, header=header,
+                                  engine='openpyxl', **pandas_kwargs)
 
         if file_path.endswith('.pkl') or ((not hasEnding) and
                                           (default_file_type == 'pkl')):
@@ -374,7 +375,7 @@ class gcs_file_io:
         """
         if not pandas_kwargs:
             pandas_kwargs = {}
-            
+
         if 'DAG_ID' in os.environ.keys():
             metadata['DAG_ID'] = os.environ['DAG_ID']
         if 'RUN_ID' in os.environ.keys():
@@ -407,14 +408,16 @@ class gcs_file_io:
                                           (default_file_type == 'csv')):
             if self.local:
                 return object_to_upload.to_csv(gcs_uri, header=header, index=index, **pandas_kwargs)
-            csv_string = object_to_upload.to_csv(encoding='utf-8', header=header, index=index, **pandas_kwargs)
+            csv_string = object_to_upload.to_csv(
+                encoding='utf-8', header=header, index=index, **pandas_kwargs)
             return blob.upload_from_string(csv_string)
         if file_path.endswith('.xlsx') or ((not hasEnding) and
                                            (default_file_type == 'xlsx')):
             if self.local:
                 return object_to_upload.to_excel(gcs_uri, header=header, index=index, **pandas_kwargs)
             fileObject = io.BytesIO()
-            object_to_upload.to_excel(fileObject, header=header, index=index, **pandas_kwargs)
+            object_to_upload.to_excel(
+                fileObject, header=header, index=index, **pandas_kwargs)
             fileObject.seek(0)
             return blob.upload_from_file(fileObject)
         if file_path.endswith('.pkl') or ((not hasEnding) and

@@ -21,8 +21,11 @@ import json
 import os
 
 default_secret_folder = '/vault/secrets/'
-default_secret_locations = [default_secret_folder +
-                            'gcp-sa-storage.json', default_secret_folder + 'gcp-sa-bq.json']
+default_secret_locations = {
+    "GCS": default_secret_folder + 'gcp-sa-storage.json',
+    "BQ": default_secret_folder + 'gcp-sa-bq.json',
+    # "SF" : default_secret_folder + 'sf_creds.json'
+}
 secrets_files = []
 
 
@@ -57,13 +60,13 @@ class safe_stdout:
         """
         message = str(message)
         for bad_word in self.__bad_words:
-            bad_word_location = message.find(str(bad_word))
-            bad_word_length = self.__bad_words[str(bad_word)]
+            bad_word_location = message.find(bad_word)
+            bad_word_length = self.__bad_words[bad_word]
             while (bad_word_location != -1):
                 message = (message[0:bad_word_location] +
                            '*' * bad_word_length +
                            message[bad_word_location + bad_word_length:])
-                bad_word_location = message.find(str(bad_word))
+                bad_word_location = message.find(bad_word)
         self.__old_stdout.write(message)
 
     def add_words(self, bad_words):
@@ -74,7 +77,7 @@ class safe_stdout:
             add to the list of words to censor in output.
         """
         for item in bad_words:
-            self.__bad_words[item] = len(str(item))
+            self.__bad_words[item] = len(item)
 
     def flush(self):
         pass
@@ -101,10 +104,9 @@ def setup_stdout(secret_locations):
         these_bad_words = set(secret.values())
         bad_words.update(these_bad_words)
         for word in these_bad_words:
-            bad_words.add(str(json.dumps(word)))
-            bad_words.add(str(json.dumps(word)).encode(
-                'unicode-escape').decode())
-            bad_words.add(str(word).encode('unicode-escape').decode())
+            bad_words.add(json.dumps(word))
+            bad_words.add(json.dumps(word).encode('unicode-escape').decode())
+            bad_words.add(word.encode('unicode-escape').decode())
     sys.stdout.add_words(bad_words)
 
 
@@ -139,8 +141,7 @@ def setup_default_stdout(folder=default_secret_folder):
         these_bad_words = set(secret.values())
         bad_words.update(these_bad_words)
         for word in these_bad_words:
-            bad_words.add(str(json.dumps(word)))
-            bad_words.add(str(json.dumps(word)).encode(
-                'unicode-escape').decode())
-            bad_words.add(str(word).encode('unicode-escape').decode())
+            bad_words.add(json.dumps(word))
+            bad_words.add(json.dumps(word).encode('unicode-escape').decode())
+            bad_words.add(str(str(word).encode('unicode-escape').decode()))
     sys.stdout = safe_stdout(bad_words)

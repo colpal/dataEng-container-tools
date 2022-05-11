@@ -391,7 +391,7 @@ class command_line_arguments:
 
         Returns:
             A list of all output URIs passed in through the command line. URIs
-            are of the format 'gs://bucket_name/input_path/filename'.
+            are of the format 'gs://bucket_name/output_path/filename'.
         """
         if not self.__output_files:
             return []
@@ -450,8 +450,10 @@ class command_line_arguments:
         return return_list
 
     def get_pandas_kwargs(self):
-        kwargs = (self.__args.input_pandas_kwargs,
-                  self.__args.output_pandas_kwargs)
+        kwargs = {
+            "input": self.__args.input_pandas_kwargs,
+            "output": self.__args.output_pandas_kwargs
+        }
         return kwargs
 
     def check_args(self):
