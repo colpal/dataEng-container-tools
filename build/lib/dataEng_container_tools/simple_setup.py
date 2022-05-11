@@ -60,6 +60,7 @@ class simple_setup:
         secret_location_args = {}
         gcs_secret_location = default_secret_locations["GCS"] 
         bq_secret_location = default_secret_locations["BQ"] 
+
         parser = argparse.ArgumentParser()
         for name in argument_names:
             if "input" in name:

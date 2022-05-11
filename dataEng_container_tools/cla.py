@@ -454,6 +454,7 @@ class command_line_arguments:
             "input": self.__args.input_pandas_kwargs,
             "output": self.__args.output_pandas_kwargs
         }
+
         return kwargs
 
     def check_args(self):
