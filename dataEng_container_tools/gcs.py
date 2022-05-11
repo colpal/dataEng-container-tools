@@ -88,7 +88,7 @@ class gcs_file_io:
         file_path = gcs_uri[gcs_uri.find("/") + 1:]
         return bucket, file_path
 
-    def __wildcard_download(self, gcs_uri, default_file_type, dtype, pandas_kwargs=None):
+    def __wildcard_download(self, gcs_uri, default_file_type, dtype, pandas_kwargs):
         return_dict = {}
         bucket_name, file_path = self.__get_parts(gcs_uri)
         bucket = self.gcs_client.bucket(bucket_name)
@@ -104,8 +104,8 @@ class gcs_file_io:
                                 default_file_type=None,
                                 dtype=None,
                                 delimiter=None,
-                                pandas_kwargs=None,
                                 header=0,
+                                pandas_kwargs=None,
                                 encoding='utf-8'):
         """Downloads a file from GCS to an object in memory.
            header default is set to 0 as mentioned in documentation
@@ -133,10 +133,10 @@ class gcs_file_io:
             file_path = gcs_uri
             file_like_object = open(gcs_uri)
         elif '*' in gcs_uri:
-            return self.__wildcard_download(gcs_uri, default_file_type, dtype, pandas_kwargs=pandas_kwargs)
+            return self.__wildcard_download(gcs_uri, default_file_type, dtype, pandas_kwargs)
         else:
             bucket_name, file_path = self.__get_parts(gcs_uri)
-            bucket = self.gcs_client.get_bucket(bucket_name)
+            bucket = self.gcs_client.bucket(bucket_name)
             binary_object = bucket.blob(file_path).download_as_string()
             file_like_object = io.BytesIO(binary_object)
         hasEnding = file_path.endswith('.parquet') or file_path.endswith(
@@ -151,12 +151,13 @@ class gcs_file_io:
             return pd.read_csv(file_like_object,
                                dtype=dtype, header=header,
                                delimiter=delimiter, encoding=encoding) if dtype else pd.read_csv(
-                file_like_object, header=header, delimiter=delimiter, encoding=encoding)
+                file_like_object, header=header, delimiter=delimiter, encoding=encoding, **pandas_kwargs)
         if file_path.endswith('.xlsx') or ((not hasEnding) and
                                            (default_file_type == 'xlsx')):
             if self.local:
                 return pd.read_excel(file_path, dtype=dtype, header=header, engine='openpyxl') if dtype else \
-                    pd.read_excel(file_path, header=header, engine='openpyxl', **pandas_kwargs)
+                    pd.read_excel(file_path, header=header,
+                                                                                                                           engine='openpyxl')
             else:
                 return pd.read_excel(file_like_object, dtype=dtype, header=header, engine='openpyxl') if dtype else\
                     pd.read_excel(file_like_object, header=header, engine='openpyxl', **pandas_kwargs)
@@ -165,7 +166,7 @@ class gcs_file_io:
                                           (default_file_type == 'pkl')):
             return pd.read_pickle(
                 file_like_object) if dtype else pd.read_pickle(
-                file_like_object)  # , dtype = dtype
+                file_like_object, **pandas_kwargs)  # , dtype = dtype
         if file_path.endswith('.json') or ((not hasEnding) and
                                            (default_file_type == 'json')):
             return json.load(file_like_object)
@@ -348,8 +349,8 @@ class gcs_file_io:
                                 default_file_type=None,
                                 header=True,
                                 index=False,
-                                metadata={},
-                                pandas_kwargs=None):
+                                pandas_kwargs=None,
+                                metadata={}):
         """Uploads a file to GCS from an object in memory.
            header is set to default value True as mentioned in documentation
            https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html
@@ -368,6 +369,9 @@ class gcs_file_io:
         Returns:
             The result from blob.upload().
         """
+        if not pandas_kwargs:
+            pandas_kwargs = {}
+            
         if 'DAG_ID' in os.environ.keys():
             metadata['DAG_ID'] = os.environ['DAG_ID']
         if 'RUN_ID' in os.environ.keys():
@@ -379,10 +383,6 @@ class gcs_file_io:
         if 'GITHUB_SHA' in os.environ.keys():
             metadata['git_hash'] = os.environ['GITHUB_SHA']
         blob = None
-        
-        if not pandas_kwargs:
-            pandas_kwargs = {}
-            
         if not self.local:
             bucket_name, file_path = self.__get_parts(gcs_uri)
             bucket = self.gcs_client.bucket(bucket_name)
@@ -439,8 +439,8 @@ class gcs_file_io:
                                   objects_to_upload,
                                   default_file_type=None,
                                   metadata=[],
-                                  pandas_kwargs=None,
                                   headers=[],
+                                  pandas_kwargs=None,
                                   indices=[]):
         """Uploads files to GCS from objects in memory.
 
@@ -478,8 +478,8 @@ class gcs_file_io:
                         gcs_uri,
                         objects_to_upload[pos],
                         default_file_type=default_file_type,
-                        pandas_kwargs=pandas_kwargs,
                         header=header,
+                        pandas_kwargs=pandas_kwargs,
                         index=index))
             elif len(metadata) == 1:
                 return_objects.append(
@@ -488,8 +488,8 @@ class gcs_file_io:
                         objects_to_upload[pos],
                         default_file_type=default_file_type,
                         metadata=metadata[0],
-                        pandas_kwargs=pandas_kwargs,
                         header=header,
+                        pandas_kwargs=pandas_kwargs,
                         index=index))
             else:
                 return_objects.append(
@@ -498,7 +498,7 @@ class gcs_file_io:
                         objects_to_upload[pos],
                         default_file_type=default_file_type,
                         metadata=metadata[pos],
-                        pandas_kwargs=pandas_kwargs,
                         header=header,
+                        pandas_kwargs=pandas_kwargs,
                         index=index))
         return return_objects

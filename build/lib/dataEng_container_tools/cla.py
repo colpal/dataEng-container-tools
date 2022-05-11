@@ -130,6 +130,8 @@ class command_line_arguments:
                  input_dtypes=None,
                  running_local=None,
                  identifying_tags=None,
+                 input_pandas_kwargs=None,
+                 output_pandas_kwargs=None,
                  parser=None):
         """Initializes command_line_arguments with desired configuration.
 
@@ -171,6 +173,8 @@ class command_line_arguments:
         self.__description = description
         self.__input_dtypes = input_dtypes
         self.__running_local = running_local
+        self.__input_pandas_kwargs = input_pandas_kwargs
+        self.__output_pandas_kwargs = output_pandas_kwargs
         parser = parser if parser else argparse.ArgumentParser(
             description=description)
         if input_files:
@@ -191,6 +195,11 @@ class command_line_arguments:
                                 required=input_files.value,
                                 nargs='+',
                                 help="Filenames to read file from.")
+            parser.add_argument("--input_delimiters",
+                                type=str,
+                                required=False,
+                                nargs='+',
+                                help="Delimiters for input files") 
             if input_dtypes:
                 parser.add_argument(
                     "--input_dtypes",
@@ -200,11 +209,12 @@ class command_line_arguments:
                     help=
                     "JSON dictionaries of (column: type) pairs to cast columns to"
                 )
-            parser.add_argument("--input_delimiters",
-                                type=str,
-                                required=False,
-                                nargs='+',
-                                help="Delimiters for input files")
+            if input_pandas_kwargs:
+                parser.add_argument("--input_pandas_kwargs",
+                    type=json.loads,
+                    required=input_pandas_kwargs.value,
+                    help="JSON dictionary of additional arguments for reading a file to a pandas dataframe")
+           
         if output_files:
             parser.add_argument("--output_bucket_names",
                                 type=str,
@@ -228,6 +238,11 @@ class command_line_arguments:
                                 required=False,
                                 nargs='+',
                                 help="Delimiters for output files")
+            if output_pandas_kwargs:
+                parser.add_argument("--output_pandas_kwargs",
+                    type=json.loads,
+                    required=output_pandas_kwargs.value,
+                    help="JSON dictionary of additional arguments for reading a file to a pandas dataframe")
         if secret_locations:
             parser.add_argument(
                 "--secret_locations",
@@ -274,17 +289,23 @@ class command_line_arguments:
                                 help="The pod name")
         if custom_inputs:
             for item in custom_inputs:
-                parser.add_argument("--" + item.name,
-                                    action=item.action,
-                                    nargs=item.nargs,
-                                    const=item.const,
-                                    default=item.default,
-                                    type=item.data_type,
-                                    choices=item.choices,
-                                    required=item.required,
-                                    help=item.help_message,
-                                    metavar=item.metavar,
-                                    dest=item.dest)
+                if item.action:
+                    parser.add_argument("--" + item.name,
+                                        required=item.required,
+                                        action=item.action,
+                                        help=item.help_message)
+                else:
+                    parser.add_argument("--" + item.name,
+                                        action=item.action,
+                                        nargs=item.nargs,
+                                        const=item.const,
+                                        default=item.default,
+                                        type=item.data_type,
+                                        choices=item.choices,
+                                        required=item.required,
+                                        help=item.help_message,
+                                        metavar=item.metavar,
+                                        dest=item.dest)
         self.__args = parser.parse_args()
         print("CLA Input:", self)
         if identifying_tags:
@@ -336,8 +357,9 @@ class command_line_arguments:
         for pos, filename in enumerate(self.__args.input_filenames):
             if not constant_bucket:
                 bucket_name = self.__args.input_bucket_names[pos]
-            output.append("gs://" + bucket_name + "/" +
-                          self.__args.input_paths[pos] + "/" + filename)
+            prefix = r"gs://"
+            uri_body = f"{bucket_name}/{self.__args.input_paths[pos]}/{filename}".replace("/ /","/").replace("/./","/").replace("//","/")
+            output.append(prefix + uri_body)
         return output
 
     def get_output_uris(self):
@@ -345,7 +367,7 @@ class command_line_arguments:
         
         Returns:
             A list of all output URIs passed in through the command line. URIs
-            are of the format 'gs://bucket_name/input_path/filename'.
+            are of the format 'gs://bucket_name/output_path/filename'.
         """
         if not self.__output_files:
             return []
@@ -358,8 +380,9 @@ class command_line_arguments:
         for pos, filename in enumerate(self.__args.output_filenames):
             if not constant_bucket:
                 bucket_name = self.__args.output_bucket_names[pos]
-            output.append("gs://" + bucket_name + "/" +
-                          self.__args.output_paths[pos] + "/" + filename)
+            prefix = r"gs://"
+            uri_body = f"{bucket_name}/{self.__args.output_paths[pos]}/{filename}".replace("/ /","/").replace("/./","/").replace("//","/")
+            output.append(prefix + uri_body)
         return output
 
     def get_secret_locations(self):
@@ -400,7 +423,11 @@ class command_line_arguments:
             except ValueError:
                 print(item, "is not a properly formatted json file.")
         return return_list
-
+    
+    def get_pandas_kwargs(self):
+        kwargs = (self.__args.input_pandas_kwargs,self.__args.output_pandas_kwargs)
+        return kwargs
+    
     def check_args(self):
         """Ensures arguments are present and valid.
         """
