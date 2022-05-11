@@ -1,9 +1,28 @@
 # Data Engineering Container Tools
 
-This packages is split into five parts: **CLA**, **GCS**, **safe_stdout**, **DB** and **simple_setup**.
+This packages is split into six parts: **BQ**, **CLA**, **GCS**, **safe_stdout**, **DB** and **simple_setup**.
 
-## CLA:
-Deals with receiving input from the command line. Has three classes: `custom_command_line_argument`, `command_line_argument_type`, and `command_line_arguments`.
+## BQ
+
+Deals with interfacing with bigQuery. Has one class `bq` with the following methods:
+
+* `__init__`: Creates the class with the following inputs:
+  * `bq_secret_location`: Required. The location of the secret file needed for BQ.
+* `send_to_gcs`: Sends the content of a bq table to a file in gcs:
+  * `query`: Required. The query to run in bq.
+  * `project_id`: Required. Project of the gcs file.
+  * `output_uri`: Required. The uri of the object in GCS to load to.
+  * `delimiter`: Optional. The delimiter used in the output file.
+* `load_from_gcs`: Loads (a) file(s) from GCS to a bq table:
+  * `project_id`: Required. Project of the gcs file.
+  * `input_uri`: Required. The uri of the object in GCS to load from.
+* `copy_tables`: -UNDER CONSTRUCTION- Copies the content of one table to another:
+  * `destination_table`: Required. The table id of the destination table.
+  * `source_tables`: Required. The table id(s) of the source table(s).
+
+## CLA
+
+Deals with receiving input from the command line. Has four classes: `custom_command_line_argument`, `command_line_argument_type`, `command_line_secret`, and `command_line_arguments`.
 
 * `command_line_arguments`: Creates and parses command line arguments. Includes helper functions for using the command line inputs. Has the following methods:
   * `__init__`: Created the class with the following inputs:
@@ -23,7 +42,6 @@ Deals with receiving input from the command line. Has three classes: `custom_com
   * `get_secret_locations`: Returns the secret locations passed in through the command line as a list of strings.
   * `get_secrets`: Returns a dictionary of objects. The key is the file name of the secret, and the object is that file loaded using 'json.load()`.
   * `check_args`: Does nothing. In future this will error check the arguments passed in through the command line.
-   
 * `custom_command_line_arguments`: Acts as a container for custom command line arguments. All of the attributes available when creating command line arguments through [the `parser.add_argument()` method](https://docs.python.org/3/library/argparse.html#argparse.ArgumentParser.add_argument) from [the `argparse` library](https://docs.python.org/3/library/argparse.html) are available in this class. Has the following methods:
   * `__init__`: Creates the class with the following inputs:
     * `name`: Required. The name of the command line argument. Should be given without the preceding '--', which will be added automatically.
@@ -37,14 +55,18 @@ Deals with receiving input from the command line. Has three classes: `custom_com
     * `help_message`: Optional. Defaults to `None`. A brief description of what the argument does.
     * `metavar`: Optional. Defaults to `None`. A name for the argument in usage messages.
     * `dest`: Optional. Defaults to `None`. The name of the attribute to be added to the object returned by parse_args().
-  
 * `command_line_argument_type`: Enumeration type. Used for populating initialization fields in `command_line_arguments`. Has the following types:
   * `OPTIONAL`: Indicates the associated command line argument should be created as optional.
   * `REQUIRED`: Indicates the associated command line argument should be created as required.
-  
+* `command_line_secret`: Used for directly selecting specific secrets by name. Has the following defaults:
+  * `GCS`: Contains the secret location for gcs.
+  * `BQ`: Contains the secret location for bq.
+  * `Others`: Will contain the secret locations of secrets passed into the CLA.
 
-## GCS:
+## GCS
+
 Deals with uploading and downloading files to/from GCS. Has one class `gcs_file_io` with the following methods:
+
 * `__init__`: Creates the class with the following inputs:
   * `gcs_secret_location`: Required. The location of the secret file needed for GCS.
   * `local`: Optional. Defaults to `False`. If `True`, no contact will be made with GCS.
@@ -86,8 +108,10 @@ Deals with uploading and downloading files to/from GCS. Has one class `gcs_file_
   * `local_locations`: Optional. Defaults to `None`. The locations of the objects. If `None`, assumes the same paths as the the GCS URIs.
   * `metadata`: Optional list of dictionaries. Defaults to empty. The metadata to add to the objects. Git hash is added automatically if `GITHUB_SHA` is set as an enviornment variable.
 
-## DB:
+## DB
+
 Deals with datastore operations. Has one method `get_secrets` and one class `Db`. The following is the discription:
+
 * `get_secrets`: get secrets from vault mounted json file:
   * `path_`: Required. path to credentials file
 * `__init__`: Creates the class with the following inputs:
@@ -113,7 +137,8 @@ Deals with datastore operations. Has one method `get_secrets` and one class `Db`
   * `order_task_entries_params`: Optional. parameters to order the task entries if required
 
 
-## safe_stdout:
+## safe_stdout
+
 Ensures that secrets are not accidentally printed using stdout. Has one class `safe_stdout`, two helper methods, `setup_stdout` and `setup_default_stdout`, and one global variable `default_secret_folder`:
 
 * `safe_stdout`: The output class in charge of outputting to the command line. Replaces stdout. Has the following methods:
@@ -132,39 +157,68 @@ Ensures that secrets are not accidentally printed using stdout. Has one class `s
   
 * `default_secret_folder`: Variable containing the folder in which secrets are injected by default. Currently set to `'/vault/secrets/'`.
 
-## Example:
+## Example
+
 An example workflow using the classes above might look something like this:
-```
-from dataEng_container_tools.cla import command_line_arguments, command_line_argument_type
+
+```python
+from dataEng_container_tools.cla import (
+  command_line_arguments, 
+  command_line_argument_type,
+  command_line_secret
+)
 from dataEng_container_tools.gcs import gcs_file_io
 
-my_inputs = command_line_arguments(secret_locations=command_line_argument_type.OPTIONAL,
-                                   input_files=command_line_argument_type.REQUIRED,
-                                   output_files=command_line_argument_type.REQUIRED)
+my_inputs = command_line_arguments(
+  secret_locations=command_line_argument_type.OPTIONAL,
+  input_files=command_line_argument_type.REQUIRED,
+  output_files=command_line_argument_type.REQUIRED
+)
 
 input_uris = my_inputs.get_input_uris()
 output_uris = my_inputs.get_output_uris()
-secret_locations = my_inputs.get_secret_locations()                              
-file_io = gcs_file_io(gcs_secret_location = secret_locations[0])
+secret_locations = command_line_secret(my_inputs.get_secret_locations())
+
+file_io = gcs_file_io(gcs_secret_location = secret_locations.GCS)
 pqt_obj = file_io.download_file_to_object(input_uris[0])
+
 #
 # Edit the object in some way here.
 #
+
 result = file_io.upload_file_from_object(gcs_uri=output_uris[0], object_to_upload=pqt_obj)
 ```
 
-## simple_setup:
+## simple_setup
+
 A simple way to get input from the command line, and download and upload documents to/from GCS. Fewer options than the classes above but also fewer lines of code to write. A brief example (documentation to come):
-```
+
+```python
 from dataEng_container_tools.simple_setup import simple_setup
-simple = simple_setup(['input_left', 'input_right', 'output_inner', 'output_outer', 'secret_location', 'example_flag'])
+
+simple = simple_setup(
+  [
+    'input_left', 
+    'input_right', 
+    'output_inner', 
+    'output_outer', 
+    'secret_location', 
+    'example_flag'
+  ]
+)
+
 objects = simple.get_input_objects()
 input_left_object = objects['input_left']
 input_right_object = objects['input_right']
+
 #
 # Edit the objects in some way here.
 #
 
-return_objs = {'output_outer': output_outer_object, 'output_inner': output_inner_object}
+return_objs = {
+  'output_outer': output_outer_object, 
+  'output_inner': output_inner_object
+}
+
 upload = simple.upload_objects(return_objs)
 ```
