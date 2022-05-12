@@ -57,9 +57,9 @@ class BQ:
         """
         self.bq_secret_location = bq_secret_location
         with open(self.bq_secret_location, 'r') as f:
-            gcs_sa = json.load(f)
-        with open('gcs-sa.json', 'w') as json_file:
-            json.dump(gcs_sa, json_file)
+            bq_sa = json.load(f)
+        with open('bq-sa.json', 'w') as json_file:
+            json.dump(bq_sa, json_file)
         self.bq_client = GBQ.Client.from_service_account_json(
             'bq-sa.json')
 
