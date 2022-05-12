@@ -49,7 +49,6 @@ class BQ:
     bq_secret_location = None
     local = None
 
-
     def __init__(self, bq_secret_location):
         """Initializes BQ with desired configuration.
 
@@ -59,32 +58,28 @@ class BQ:
         """
         self.bq_secret_location = bq_secret_location
         with open(self.bq_secret_location, 'r') as f:
-            gcs_sa = json.load(f)
-        with open('gcs-sa.json', 'w') as json_file:
-            json.dump(gcs_sa, json_file)
+            bq_sa = json.load(f)
+        with open('bq-sa.json', 'w') as json_file:
+            json.dump(bq_sa, json_file)
         self.bq_client = GBQ.Client.from_service_account_json(
             'bq-sa.json')
 
-        
     def __create_job_id(self, project_id, job_type):
         chars = string.ascii_letters + string.digits
         random_string = ''.join(random.choice(chars) for i in range(10))
         return f'{project_id}-{job_type}-{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}-{random_string}'
 
-      
     def __get_parts(self, gcs_uri):
         if gcs_uri.startswith('gs://'):
             gcs_uri = gcs_uri[5:]
 
         uri_parts = gcs_uri.split("/")
 
-
         bucket = uri_parts[0]
         path = "".join(uri_parts[1:-1])
         filename = uri_parts[-1]
         return bucket,  path, filename
 
-      
     def __get_file_type(self, suffix):
         if suffix == "parquet":
             file_type = SourceFormat.PARQUET
@@ -95,7 +90,6 @@ class BQ:
         else:
             file_type = SourceFormat.CSV
         return file_type
-
 
     def __get_results(self, bq_job):
         bq_job_results = bq_job.result()
@@ -110,14 +104,12 @@ class BQ:
             "job_results": bq_job_results
         }
 
-
         try:
             job_result["query_plan"] = bq_job.query_plan
         except:
             "No query to plan"
 
         return job_result
-
 
     def send_to_gcs(self, query, project_id, output_uri, delimiter=","):
         job_results = {}
