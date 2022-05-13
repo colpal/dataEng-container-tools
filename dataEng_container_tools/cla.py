@@ -327,7 +327,11 @@ class command_line_arguments:
                                         help=item.help_message,
                                         metavar=item.metavar,
                                         dest=item.dest)
-        self.__args = parser.parse_args()
+        try:
+            self.__args = parser.parse_args()
+        except SystemExit:
+            print(f"\nARGUMENT ERROR: Reference the dataEng_container_tools README at https://github.com/colpal/dataEng-container-tools/blob/v0.6.1/README.md for examples of new updates from v0.6.1.\n")
+            sys.exit()
         print("CLA Input:", self)
 
         if identifying_tags:
