@@ -5,7 +5,7 @@ class: `BQ`.
 
 Typical usage example:
 
-    bq = BQ(bq_secret_location = secret_locations[0])
+    bq = BQ(bq_secret_location = secret_locations.BQ)
     #
     # Include Job_config here
     #
