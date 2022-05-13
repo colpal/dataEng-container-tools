@@ -34,6 +34,7 @@ class BQ:
     It will handle much of the backend boilerplate code involved with interfacing
     with big query.
 
+
     Includes helper functions for using BQ.
 
     Attributes:
