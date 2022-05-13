@@ -29,7 +29,7 @@ Deals with receiving input from the command line. Has four classes: `custom_comm
     * `input_files`: Optional `command_line_argument_type`. Defaults to `None`. If `REQUIRED`, will add `--input_bucket_names`, `--input_paths`, and `--input_filenames` as required command line inputs. If `OPTIONAL`, will add them as optional. If `None` they will not be added.
     * `output_files`: Optional `command_line_argument_type`. Defaults to `None`. If `REQUIRED`, will add `--output_bucket_names`, `--output_paths`, and `--output_filenames` as required command line inputs. If `command_line_argument_type.OPTIONAL`, will add them as optional. If `None` they will not be added.
     * `secret_locations`: Optional `command_line_argument_type`. Defaults to `None`. If `REQUIRED`, will add `--secret_locations` as required command line input. If `OPTIONAL`, will add it as optional. If `None`, it will not be added.
-    * `default_file_type`: Optional `command_line_argument_type`. Defaults to `None`. If `REQUIRED`, will add `--default_file_type` as required command line argument. If `OPTIONAL`, will add it as optional. Input can be one of `parquet`, `csv`, `pkl`, or `json`, with the default being `parquet`. If `None`, the command line argument will not be added. 
+    * `default_file_type`: Optional `command_line_argument_type`. Defaults to `None`. If `REQUIRED`, will add `--default_file_type` as required command line argument. If `OPTIONAL`, will add it as optional. Input can be one of `parquet`, `csv`, `pkl`, or `json`, with the default being `parquet`. If `None`, the command line argument will not be added.
     * `custom_inputs`: Optional list of `custom_command_line_arguments`. Defaults to `None`. All items in list will be added to the command line arguments.
     * `description` : Optional `string`. Defaults to `None`. A description to be printed when the command line argument `--help` is used.
     * `input_dtypes`: Optional `command_line_argument_type`. Defaults to `None`. If `input_files` is `None`, then this does nothing. If `input_files` is not `None` and `input_dtypes` is `REQUIRED`, will add `--input_dtypes`as a required command line input. If `OPTIONAL`, will add it as optional.  Input is a JSON dictionary of (column: type) pairs.
@@ -135,7 +135,6 @@ Deals with datastore operations. Has one method `get_secrets` and one class `Db`
   * `client`: Required. datastore client
   * `params`: Required. dictionary containing all the parameters(key-value pairs) to be stored
   * `order_task_entries_params`: Optional. parameters to order the task entries if required
-
 
 ## safe_stdout
 

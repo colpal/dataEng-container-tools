@@ -15,7 +15,7 @@ Typical usage example:
     input_uris = my_inputs.get_input_uris()
     output_uris = my_inputs.get_output_uris()
     secret_locations = my_inputs.get_secret_locations()
-    file_io = gcs_file_io(gcs_secret_location = secret_locations[0])
+    file_io = gcs_file_io(gcs_secret_location = secret_locations.GCS)
 """
 
 import argparse
