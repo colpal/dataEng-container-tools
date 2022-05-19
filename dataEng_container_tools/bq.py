@@ -95,6 +95,7 @@ class BQ:
             bq_job_results = bq_job.result()
         except Exception as e:
             print(e)
+            raise EOFError
         finally:
             job_result = {
                 "start_time": bq_job.started.ctime(),
@@ -106,12 +107,12 @@ class BQ:
                 "job_results": bq_job_results
             }
 
-        try:
-            job_result["query_plan"] = bq_job.query_plan
-        except:
-            "No query to plan"
+            try:
+                job_result["query_plan"] = bq_job.query_plan
+            except:
+                "No query to plan"
 
-        print(job_result)
+            print(job_result)
 
         return job_result
 
