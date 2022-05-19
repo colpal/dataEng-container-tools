@@ -16,6 +16,7 @@ import pandas as pd
 import os
 import string
 import random
+import logging
 
 from datetime import datetime
 from google.cloud import bigquery as GBQ
@@ -63,6 +64,10 @@ class BQ:
         self.bq_client = GBQ.Client.from_service_account_json(
             'bq-sa.json')
 
+        logging.basicConfig()
+        self.logger = logging.getLogger("BQ")
+        self.logger.setLevel(logging.INFO)
+
     def __create_job_id(self, project_id, job_type):
         chars = string.ascii_letters + string.digits
         random_string = ''.join(random.choice(chars) for i in range(10))
@@ -94,7 +99,7 @@ class BQ:
         try:
             bq_job_results = bq_job.result()
         except Exception as e:
-            print(e)
+            self.logger.error(e)
             raise EOFError
         finally:
             job_result = {
@@ -112,7 +117,7 @@ class BQ:
             except:
                 "No query to plan"
 
-            print(job_result)
+            self.logger.info(job_result)
 
         return job_result
 
