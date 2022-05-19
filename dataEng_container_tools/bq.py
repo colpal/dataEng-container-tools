@@ -108,6 +108,8 @@ class BQ:
         except:
             "No query to plan"
 
+        print(job_result)
+
         return job_result
 
     def send_to_gcs(self, query, project_id, output_uri, delimiter=","):
