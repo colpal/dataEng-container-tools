@@ -34,7 +34,6 @@ class BQ:
     It will handle much of the backend boilerplate code involved with interfacing
     with big query.
 
-
     Includes helper functions for using BQ.
 
     Attributes:
@@ -108,6 +107,8 @@ class BQ:
             job_result["query_plan"] = bq_job.query_plan
         except:
             "No query to plan"
+
+        print(job_result)
 
         return job_result
 
