@@ -100,6 +100,7 @@ class BQ:
             bq_job_results = bq_job.result()
         except Exception as e:
             self.logger.error(e)
+            self.logger.error(bq_job.errors)
             raise EOFError
         finally:
             job_result = {
@@ -112,12 +113,12 @@ class BQ:
                 "job_results": bq_job_results
             }
 
-            try:
-                job_result["query_plan"] = bq_job.query_plan
-            except:
-                "No query to plan"
+        try:
+            job_result["query_plan"] = bq_job.query_plan
+        except:
+            self.logger.info("No query plan")
 
-            self.logger.info(job_result)
+        self.logger.info(job_result)
 
         return job_result
 
