@@ -91,25 +91,29 @@ class BQ:
         return file_type
 
     def __get_results(self, bq_job):
-        bq_job_results = bq_job.result()
-
-        job_result = {
-            "start_time": bq_job.started.ctime(),
-            "end_time": bq_job.ended.ctime(),
-            "job_errors": bq_job.errors,
-            "total_bytes_billed": bq_job.total_bytes_billed,
-            "total_bytes_processed": bq_job.total_bytes_processed,
-            "total_rows_returned": bq_job_results.total_rows,
-            "job_results": bq_job_results
-        }
+        try:
+            bq_job_results = bq_job.result()
+        except Exception as e:
+            print(e)
+        finally:
+            job_result = {
+                "start_time": bq_job.started.ctime(),
+                "end_time": bq_job.ended.ctime(),
+                "job_errors": bq_job.errors,
+                "total_bytes_billed": bq_job.total_bytes_billed,
+                "total_bytes_processed": bq_job.total_bytes_processed,
+                "total_rows_returned": bq_job_results.total_rows,
+                "job_results": bq_job_results
+            }
+            
 
         try:
             job_result["query_plan"] = bq_job.query_plan
         except:
             "No query to plan"
-
+        
         print(job_result)
-
+        
         return job_result
 
     def send_to_gcs(self, query, project_id, output_uri, delimiter=","):
