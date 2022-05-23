@@ -96,12 +96,13 @@ class BQ:
         return file_type
 
     def __get_results(self, bq_job):
+        bq_job_results = None
         try:
             bq_job_results = bq_job.result()
         except Exception as e:
             self.logger.error(
-                f"Service Account: {self.bq_client.get_service_account_email()}", e)
-            raise EOFError
+                f"Error: {e}\n\nBQ Service Account: {self.bq_client.get_service_account_email()}\n")
+            quit()
         finally:
             job_result = {
                 "start_time": None if not bq_job.started else bq_job.started.ctime(),
