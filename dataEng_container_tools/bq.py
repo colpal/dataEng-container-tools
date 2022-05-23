@@ -99,7 +99,8 @@ class BQ:
         try:
             bq_job_results = bq_job.result()
         except Exception as e:
-            self.logger.error(e)
+            self.logger.error(
+                f"Service Account: {self.bq_client.get_service_account_email()}", e)
             raise EOFError
         finally:
             job_result = {

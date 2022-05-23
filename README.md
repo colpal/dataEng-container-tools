@@ -163,8 +163,7 @@ An example workflow using the classes above might look something like this:
 ```python
 from dataEng_container_tools.cla import (
   command_line_arguments, 
-  command_line_argument_type,
-  command_line_secret
+  command_line_argument_type
 )
 from dataEng_container_tools.gcs import gcs_file_io
 
@@ -176,7 +175,7 @@ my_inputs = command_line_arguments(
 
 input_uris = my_inputs.get_input_uris()
 output_uris = my_inputs.get_output_uris()
-secret_locations = command_line_secret(my_inputs.get_secret_locations())
+secret_locations = my_inputs.get_secret_locations()
 
 file_io = gcs_file_io(gcs_secret_location = secret_locations.GCS)
 pqt_obj = file_io.download_file_to_object(input_uris[0])
