@@ -138,7 +138,11 @@ def setup_default_stdout(folder=default_secret_folder):
         except ValueError:
             print(file, "is not a properly formatted json file.")
         secrets_files.append(file)
-        these_bad_words = set(secret.values())
+        try:
+            these_bad_words = set(secret.values())
+        except TypeError:
+            print(file, "is not a properly formatted json file.")
+            continue
         bad_words.update(these_bad_words)
         for word in these_bad_words:
             bad_words.add(str(json.dumps(word)))
