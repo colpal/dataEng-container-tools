@@ -173,7 +173,9 @@ class gcs_file_io:
                 file_like_object, **pandas_kwargs)  # , dtype = dtype
         if file_path.endswith('.json') or ((not hasEnding) and
                                            (default_file_type == 'json')):
-            return json.load(file_like_object)
+            with open(file_like_object) as f:
+                data = [json.loads(line) for line in f]
+            return data
         return file_like_object
 
     def download_files_to_objects(self,
