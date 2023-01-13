@@ -176,7 +176,7 @@ class gcs_file_io:
             # with open(file_path) as f:
             #     data = [json.loads(line) for line in f]
             # return data
-            return pd.read_json(file_like_object)
+            return pd.read_json(file_like_object, lines=True)
 
     def download_files_to_objects(self,
                                   gcs_uris,
