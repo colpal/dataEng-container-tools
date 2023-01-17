@@ -135,11 +135,11 @@ def setup_default_stdout(folder=default_secret_folder):
     for file in files:
         try:
             secret = json.load(open(file, 'r'))
+            secrets_files.append(file)
+            these_bad_words = set(secret.values())
+            bad_words.update(these_bad_words)
         except ValueError:
             print(file, "is not a properly formatted json file.")
-        secrets_files.append(file)
-        these_bad_words = set(secret.values())
-        bad_words.update(these_bad_words)
         for word in these_bad_words:
             bad_words.add(str(json.dumps(word)))
             bad_words.add(str(json.dumps(word)).encode('unicode-escape').decode())
