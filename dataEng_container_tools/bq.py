@@ -96,22 +96,28 @@ class BQ:
         return file_type
 
     def __get_results(self, bq_job):
+        bq_job_results = None
+        job_exception = None
         try:
             bq_job_results = bq_job.result()
         except Exception as e:
-            self.logger.error(e)
-            raise EOFError
-        finally:
-            job_result = {
-                "start_time": None if not bq_job.started else bq_job.started.ctime(),
-                "end_time": None if not bq_job.ended else bq_job.ended.ctime(),
-                "job_errors": None if hasattr(bq_job, "errors") else bq_job.errors,
-                "total_bytes_billed": None if not hasattr(bq_job, "total_bytes_billed") else bq_job.total_bytes_billed,
-                "total_bytes_processed": None if not hasattr(bq_job, "total_bytes_processed") else bq_job.total_bytes_processed,
-                "total_rows_returned": None if not hasattr(bq_job_results, "total_rows") else bq_job_results.total_rows,
-                "query_plan": None if not hasattr(bq_job, "query_plan") else bq_job.query_plan,
-                "job_results": bq_job_results,
-            }
+            self.logger.error(
+                f"Error: {e}\n\nBQ Service Account: {self.bq_client.get_service_account_email()}\n")
+            job_exception = e
+
+        if job_exception:
+            raise job_exception
+
+        job_result = {
+            "start_time": None if not bq_job.started else bq_job.started.ctime(),
+            "end_time": None if not bq_job.ended else bq_job.ended.ctime(),
+            "job_errors": None if hasattr(bq_job, "errors") else bq_job.errors,
+            "total_bytes_billed": None if not hasattr(bq_job, "total_bytes_billed") else bq_job.total_bytes_billed,
+            "total_bytes_processed": None if not hasattr(bq_job, "total_bytes_processed") else bq_job.total_bytes_processed,
+            "total_rows_returned": None if not hasattr(bq_job_results, "total_rows") else bq_job_results.total_rows,
+            "query_plan": None if not hasattr(bq_job, "query_plan") else bq_job.query_plan,
+            "job_results": bq_job_results,
+        }
 
         self.logger.info(job_result)
 
