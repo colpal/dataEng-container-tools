@@ -5,7 +5,7 @@ class: `BQ`.
 
 Typical usage example:
 
-    bq = BQ(bq_secret_location = secret_locations[0])
+    bq = BQ(bq_secret_location = secret_locations.BQ)
     #
     # Include Job_config here
     #
@@ -16,6 +16,7 @@ import pandas as pd
 import os
 import string
 import random
+import logging
 
 from datetime import datetime
 from google.cloud import bigquery as GBQ
@@ -33,7 +34,7 @@ class BQ:
 
     It will handle much of the backend boilerplate code involved with interfacing
     with big query.
-    
+
     Includes helper functions for using BQ.
 
     Attributes:
@@ -48,7 +49,6 @@ class BQ:
     bq_secret_location = None
     local = None
 
-    
     def __init__(self, bq_secret_location):
         """Initializes BQ with desired configuration.
 
@@ -57,24 +57,28 @@ class BQ:
                     needed for BigQuery.
         """
         self.bq_secret_location = bq_secret_location
-        with open(bq_secret_location, 'r') as f:
-            gcs_sa = json.load(f)
-        with open('gcs-sa.json', 'w') as json_file:
-            json.dump(gcs_sa, json_file)
+        with open(self.bq_secret_location, 'r') as f:
+            bq_sa = json.load(f)
+        with open('bq-sa.json', 'w') as json_file:
+            json.dump(bq_sa, json_file)
         self.bq_client = GBQ.Client.from_service_account_json(
             'bq-sa.json')
-        
-    def __create_job_id(self,project_id,job_type):
+
+        logging.basicConfig()
+        self.logger = logging.getLogger("BQ")
+        self.logger.setLevel(logging.INFO)
+
+    def __create_job_id(self, project_id, job_type):
         chars = string.ascii_letters + string.digits
         random_string = ''.join(random.choice(chars) for i in range(10))
         return f'{project_id}-{job_type}-{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}-{random_string}'
-    
+
     def __get_parts(self, gcs_uri):
         if gcs_uri.startswith('gs://'):
             gcs_uri = gcs_uri[5:]
-        
+
         uri_parts = gcs_uri.split("/")
-        
+
         bucket = uri_parts[0]
         path = "".join(uri_parts[1:-1])
         filename = uri_parts[-1]
@@ -91,74 +95,86 @@ class BQ:
             file_type = SourceFormat.CSV
         return file_type
 
-    def __get_results(self,bq_job):  
-        bq_job_results = bq_job.result()
-        
-        job_result = {
-            "start_time" : bq_job.started.ctime(),
-            "end_time" : bq_job.ended.ctime(),
-            "job_errors" : bq_job.errors,
-            "total_bytes_billed" : bq_job.total_bytes_billed,
-            "total_bytes_processed" : bq_job.total_bytes_processed,
-            "total_rows_returned" : bq_job_results.total_rows,
-            "job_results" : bq_job_results
-        }
-        
+    def __get_results(self, bq_job):
+        bq_job_results = None
+        job_exception = None
         try:
-            job_result["query_plan"] = bq_job.query_plan
-        except:
-            "No query to plan"
+            bq_job_results = bq_job.result()
+        except Exception as e:
+            self.logger.error(
+                f"Error: {e}\n\nBQ Service Account: {self.bq_client.get_service_account_email()}\n")
+            job_exception = e
+
+        if job_exception:
+            raise job_exception
+
+        job_result = {
+            "start_time": None if not bq_job.started else bq_job.started.ctime(),
+            "end_time": None if not bq_job.ended else bq_job.ended.ctime(),
+            "job_errors": None if hasattr(bq_job, "errors") else bq_job.errors,
+            "total_bytes_billed": None if not hasattr(bq_job, "total_bytes_billed") else bq_job.total_bytes_billed,
+            "total_bytes_processed": None if not hasattr(bq_job, "total_bytes_processed") else bq_job.total_bytes_processed,
+            "total_rows_returned": None if not hasattr(bq_job_results, "total_rows") else bq_job_results.total_rows,
+            "query_plan": None if not hasattr(bq_job, "query_plan") else bq_job.query_plan,
+            "job_results": bq_job_results,
+        }
+
+        self.logger.info(job_result)
 
         return job_result
-    
-    def send_to_gcs(self,query,project_id,output_uri,delimiter = ","):
+
+    def send_to_gcs(self, query, project_id, output_uri, delimiter=","):
         job_results = {}
-        
+
         client = self.bq_client
-        
-        queryJob = QueryJob(self.__create_job_id(project_id,"queryJob"), query, client)
+
+        queryJob = QueryJob(self.__create_job_id(
+            project_id, "queryJob"), query, client)
         job_results["queryJob"] = self.__get_results(queryJob)
-        
+
         output_type = output_uri.split(".")[-1]
         dest_format = self.__get_file_type(output_type)
-        
-        if dest_format == SourceFormat.CSV:
-            config = ExtractJobConfig(destination_format = dest_format, field_delimiter = delimiter)
-        else:
-            config = ExtractJobConfig(destination_format = dest_format)
 
-        extractJob = ExtractJob(self.__create_job_id(project_id,"extractJob"),
-            job_results["queryJob"]["job_results"].destination, output_uri, client, job_config=config
-        )
-            
+        if dest_format == SourceFormat.CSV:
+            config = ExtractJobConfig(
+                destination_format=dest_format, field_delimiter=delimiter)
+        else:
+            config = ExtractJobConfig(destination_format=dest_format)
+
+        extractJob = ExtractJob(self.__create_job_id(project_id, "extractJob"),
+                                queryJob.destination, output_uri, client, job_config=config
+                                )
+
         job_results["extractJob"] = self.__get_results(extractJob)
-        
+
         return job_results
-   
-    def load_from_gcs(self,table_id,input_uri):
+
+    def load_from_gcs(self, table_id, input_uri):
         job_results = {}
-        
+
         client = self.bq_client
-        
-        project_id,ds_id,table_name = table_id.split(".")
-        dataset = DatasetReference(project_id,ds_id)
-        output_table = TableReference(dataset,table_name)
-        
+
+        project_id, ds_id, table_name = table_id.split(".")
+        dataset = DatasetReference(project_id, ds_id)
+        output_table = TableReference(dataset, table_name)
+
         ending = input_uri.split(".")[-1]
         file_type = self.__get_file_type(ending)
-        
-        config = LoadJobConfig(autodetect=True, write_disposition=WriteDisposition.WRITE_APPEND,source_format=file_type)
-        loadJob = LoadJob(self.__create_job_id(project_id,"loadJob"), input_uri, output_table, client, job_config=config)
+
+        config = LoadJobConfig(
+            autodetect=True, write_disposition=WriteDisposition.WRITE_APPEND, source_format=file_type)
+        loadJob = LoadJob(self.__create_job_id(
+            project_id, "loadJob"), input_uri, output_table, client, job_config=config)
 
         job_results["loadJob"] = self.__get_results(loadJob)
-        
+
         return job_results
-    
-    def copy_tables(self,destination_table,source_tables):
+
+    def copy_tables(self, destination_table, source_tables):
         job_results = {}
-        
+
         # copyJob = CopyJob()
-        
+
         # job_results["copyJob"] = self.__get_results(copyJob)
-        
+
         # return job_results

@@ -4,8 +4,7 @@ on:
   pull_request:
     branches:
       - develop
-    paths:
-      - '**'
+
 jobs:
   apply:
     name: Approve Dev PR
