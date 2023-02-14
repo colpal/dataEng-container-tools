@@ -99,14 +99,14 @@ def setup_stdout(secret_locations):
     for file in secret_locations:
         try:
             secret = json.load(open(file, 'r'))
+            these_bad_words = set(secret.values())
+            bad_words.update(these_bad_words)
+            for word in these_bad_words:
+                bad_words.add(str(json.dumps(word)))
+                bad_words.add(str(json.dumps(word)).encode('unicode-escape').decode())
+                bad_words.add(str(word).encode('unicode-escape').decode())
         except ValueError:
             print(file, "is not a properly formatted json file.")
-        these_bad_words = set(secret.values())
-        bad_words.update(these_bad_words)
-        for word in these_bad_words:
-            bad_words.add(str(json.dumps(word)))
-            bad_words.add(str(json.dumps(word)).encode('unicode-escape').decode())
-            bad_words.add(str(word).encode('unicode-escape').decode())
     sys.stdout.add_words(bad_words)
 
 
@@ -135,13 +135,13 @@ def setup_default_stdout(folder=default_secret_folder):
     for file in files:
         try:
             secret = json.load(open(file, 'r'))
+            secrets_files.append(file)
+            these_bad_words = set(secret.values())
+            bad_words.update(these_bad_words)
+            for word in these_bad_words:
+                bad_words.add(str(json.dumps(word)))
+                bad_words.add(str(json.dumps(word)).encode('unicode-escape').decode())
+                bad_words.add(str(word).encode('unicode-escape').decode())
         except ValueError:
             print(file, "is not a properly formatted json file.")
-        secrets_files.append(file)
-        these_bad_words = set(secret.values())
-        bad_words.update(these_bad_words)
-        for word in these_bad_words:
-            bad_words.add(str(json.dumps(word)))
-            bad_words.add(str(json.dumps(word)).encode('unicode-escape').decode())
-            bad_words.add(str(word).encode('unicode-escape').decode())
     sys.stdout = safe_stdout(bad_words)
