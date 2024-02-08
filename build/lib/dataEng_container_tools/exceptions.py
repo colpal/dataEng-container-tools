@@ -6,7 +6,7 @@ ex - @handle_exception
 	def some_function():
 """
 
-from collections import Iterable
+# from collections import Iterable
 from functools import wraps
 
 
