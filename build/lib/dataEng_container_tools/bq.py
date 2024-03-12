@@ -49,7 +49,7 @@ class BQ:
     bq_secret_location = None
     local = None
 
-    def __init__(self, bq_secret_location):
+    def __init__(self, bq_secret_location,custom_config_args=None):
         """Initializes BQ with desired configuration.
 
             Args:
@@ -68,21 +68,13 @@ class BQ:
         self.logger = logging.getLogger("BQ")
         self.logger.setLevel(logging.INFO)
 
+        self.custom_config_args = custom_config_args if custom_config_args else {}
+
     def __create_job_id(self, project_id, job_type):
         chars = string.ascii_letters + string.digits
         random_string = ''.join(random.choice(chars) for i in range(10))
         return f'{project_id}-{job_type}-{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}-{random_string}'
-
-    def __get_parts(self, gcs_uri):
-        if gcs_uri.startswith('gs://'):
-            gcs_uri = gcs_uri[5:]
-
-        uri_parts = gcs_uri.split("/")
-
-        bucket = uri_parts[0]
-        path = "".join(uri_parts[1:-1])
-        filename = uri_parts[-1]
-        return bucket,  path, filename
+    
 
     def __get_file_type(self, suffix):
         if suffix == "parquet":
@@ -94,19 +86,10 @@ class BQ:
         else:
             file_type = SourceFormat.CSV
         return file_type
+    
 
     def __get_results(self, bq_job):
-        bq_job_results = None
-        job_exception = None
-        try:
-            bq_job_results = bq_job.result()
-        except Exception as e:
-            self.logger.error(
-                f"Error: {e}\n\nBQ Service Account: {self.bq_client.get_service_account_email()}\n")
-            job_exception = e
-
-        if job_exception:
-            raise job_exception
+        bq_job_results = bq_job.result()
 
         job_result = {
             "start_time": None if not bq_job.started else bq_job.started.ctime(),
@@ -122,6 +105,7 @@ class BQ:
         self.logger.info(job_result)
 
         return job_result
+    
 
     def send_to_gcs(self, query, project_id, output_uri, delimiter=","):
         job_results = {}
@@ -130,24 +114,33 @@ class BQ:
 
         queryJob = QueryJob(self.__create_job_id(
             project_id, "queryJob"), query, client)
+        
         job_results["queryJob"] = self.__get_results(queryJob)
 
         output_type = output_uri.split(".")[-1]
         dest_format = self.__get_file_type(output_type)
 
+        extract_config_args = {
+            "destination_format" : dest_format
+        }
+        
+        extract_config_args.update(self.custom_config_args.get("extract_config_args", {}))
+
         if dest_format == SourceFormat.CSV:
-            config = ExtractJobConfig(
-                destination_format=dest_format, field_delimiter=delimiter)
-        else:
-            config = ExtractJobConfig(destination_format=dest_format)
+            extract_config_args["field_delimiter"] = delimiter
 
-        extractJob = ExtractJob(self.__create_job_id(project_id, "extractJob"),
-                                queryJob.destination, output_uri, client, job_config=config
-                                )
+        config = ExtractJobConfig(**extract_config_args)
 
+        extractJob = ExtractJob(
+                        self.__create_job_id(project_id, "extractJob"),
+                        queryJob.destination, output_uri, client, 
+                        job_config=config
+                    )
+        
         job_results["extractJob"] = self.__get_results(extractJob)
 
         return job_results
+    
 
     def load_from_gcs(self, table_id, input_uri):
         job_results = {}
@@ -161,15 +154,25 @@ class BQ:
         ending = input_uri.split(".")[-1]
         file_type = self.__get_file_type(ending)
 
-        config = LoadJobConfig(
-            autodetect=True, write_disposition=WriteDisposition.WRITE_APPEND, source_format=file_type)
-        loadJob = LoadJob(self.__create_job_id(
-            project_id, "loadJob"), input_uri, output_table, client, job_config=config)
+        load_config_args = {
+            "autodetect" : True, 
+            "write_disposition" : WriteDisposition.WRITE_APPEND, 
+            "source_format" : file_type
+        }
+
+        load_config_args.update(self.custom_config_args.get("load_config_args", {}))
+
+        config = LoadJobConfig(**load_config_args)
+        
+        loadJob = LoadJob(self.__create_job_id(project_id, "loadJob"), 
+                    input_uri, output_table, client, job_config=config
+                )
 
         job_results["loadJob"] = self.__get_results(loadJob)
 
         return job_results
-
+    
+    # TODO finish function
     def copy_tables(self, destination_table, source_tables):
         job_results = {}
 

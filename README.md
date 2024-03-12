@@ -8,6 +8,7 @@ Deals with interfacing with bigQuery. Has one class `bq` with the following meth
 
 * `__init__`: Creates the class with the following inputs:
   * `bq_secret_location`: Required. The location of the secret file needed for BQ.
+  * `custom_config_args`: Optional. A Dictionary of configs that want to be passed to Bq job configs.
 * `send_to_gcs`: Sends the content of a bq table to a file in gcs:
   * `query`: Required. The query to run in bq.
   * `project_id`: Required. Project of the gcs file.
