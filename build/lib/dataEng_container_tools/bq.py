@@ -12,21 +12,23 @@ Typical usage example:
     result = bq.LoadJob(args)
 """
 import json
-import pandas as pd
-import os
 import string
 import random
 import logging
 
 from datetime import datetime
 from google.cloud import bigquery as GBQ
-from google.cloud.bigquery.job import QueryJob, QueryJobConfig
-from google.cloud.bigquery.job import ExtractJob, ExtractJobConfig
-from google.cloud.bigquery.job import LoadJob, LoadJobConfig
-from google.cloud.bigquery.job import CopyJob, CopyJobConfig
-from google.cloud.bigquery.job import WriteDisposition
 from google.cloud.bigquery.enums import SourceFormat
-from google.cloud.bigquery import DatasetReference, TableReference
+from google.cloud.bigquery.job import (
+    QueryJob, QueryJobConfig,
+    ExtractJob, ExtractJobConfig,
+    LoadJob, LoadJobConfig,
+    CopyJob, CopyJobConfig,
+    WriteDisposition
+)
+from google.cloud.bigquery.table import TableReference
+from google.cloud.bigquery.dataset import DatasetReference
+from google.cloud.bigquery.schema import SchemaField
 
 
 class BQ:
@@ -45,9 +47,6 @@ class BQ:
             is running in local only mode and should not attempt to
             contact GCP. If True, will look for the files locally.
     """
-    bq_client = None
-    bq_secret_location = None
-    local = None
 
     def __init__(self, bq_secret_location,custom_config_args=None):
         """Initializes BQ with desired configuration.
@@ -151,14 +150,21 @@ class BQ:
         dataset = DatasetReference(project_id, ds_id)
         output_table = TableReference(dataset, table_name)
 
-        ending = input_uri.split(".")[-1]
-        file_type = self.__get_file_type(ending)
+        file_extenetion = input_uri.split(".")[-1]
+        file_type = self.__get_file_type(file_extenetion)
 
         load_config_args = {
             "autodetect" : True, 
             "write_disposition" : WriteDisposition.WRITE_APPEND, 
             "source_format" : file_type
         }
+
+        if passed_schema := self.custom_config_args.get("schema"):
+            new_schema = []
+            for field in passed_schema:
+                new_schema.append(SchemaField(field["name"],field["type"],mode=field["mode"]))
+
+            load_config_args.update({"schema": new_schema})
 
         load_config_args.update(self.custom_config_args.get("load_config_args", {}))
 
