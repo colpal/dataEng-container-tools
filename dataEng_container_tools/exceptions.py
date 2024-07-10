@@ -6,7 +6,15 @@ ex - @handle_exception
 	def some_function():
 """
 
-from collections import Iterable
+""" 
+    I'm not sure if the Iterable class is even being used but
+    did not want to remove in case it is. 
+"""
+try:
+    from collections import Iterable
+except ImportError:
+    from collections.abc import Iterable 
+
 from functools import wraps
 
 

@@ -83,7 +83,7 @@ class safe_stdout:
         pass
 
 
-def setup_stdout(secret_locations):
+def setup_stdout():
     """Adds the contents of a list of files to the words to censor from output.
 
     For each JSON location specified in the input, this method will open the JSON,
@@ -96,14 +96,15 @@ def setup_stdout(secret_locations):
         whose contents should be censored from output.
     """
     bad_words = set()
-    for file in secret_locations:
+    files = [os.path.join(dp, f) for dp, dn, fn in os.walk(default_secret_folder) for f in fn]
+    for file in files:
         try:
             secret = json.load(open(file, 'r'))
             these_bad_words = set(secret.values())
             bad_words.update(these_bad_words)
             for word in these_bad_words:
-                bad_words.add(str(json.dumps(word)))
-                bad_words.add(str(json.dumps(word)).encode('unicode-escape').decode())
+                bad_words.add(str(json.dumps(str(word))))
+                bad_words.add(str(json.dumps(str(word))).encode('unicode-escape').decode())
                 bad_words.add(str(word).encode('unicode-escape').decode())
         except ValueError:
             print(file, "is not a properly formatted json file.")
@@ -139,8 +140,8 @@ def setup_default_stdout(folder=default_secret_folder):
             these_bad_words = set(secret.values())
             bad_words.update(these_bad_words)
             for word in these_bad_words:
-                bad_words.add(str(json.dumps(word)))
-                bad_words.add(str(json.dumps(word)).encode('unicode-escape').decode())
+                bad_words.add(str(json.dumps(str(word))))
+                bad_words.add(str(json.dumps(str(word))).encode('unicode-escape').decode())
                 bad_words.add(str(word).encode('unicode-escape').decode())
         except ValueError:
             print(file, "is not a properly formatted json file.")
