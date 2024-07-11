@@ -438,16 +438,14 @@ class command_line_arguments:
             and the value is the loaded secret file.
         """
         return_dict = {}
-        secret_dict = None
+        secret_list = None
         
-        if self.__secret_locations:
-            secret_dict = self.__args.secret_locations
-        elif len(secrets_files) > 0:
-            secret_dict = secrets_files
+        if len(secrets_files) > 0:
+            secret_list = secrets_files
         else:
             return None
         
-        for item in secret_dict:
+        for item in secret_list:
             try:
                 return_dict[item.strip('.json').split('/')[-1]] = json.load(
                     open(item, 'r'))
