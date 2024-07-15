@@ -3,8 +3,8 @@ Name: dataEng-container-tools
 Version: 0.6.4
 Summary: A package containing tools for data engineering containers.
 Home-page: https://github.com/colpal/dataEng-container-tools
-Author: CP DE Team
-Author-email: git_data_science_engineering@colpal.com
+Maintainer: CP DE Team
+Maintainer-email: git_data_science_engineering@colpal.com
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
