@@ -6,9 +6,9 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="dataEng-container-tools",
-    version="0.6.1",
-    author="Alexander Saff",
-    author_email="alexander_saff@colpal.com",
+    version="0.6.4",
+    maintainer="CP DE Team",
+    maintainer_email="git_data_science_engineering@colpal.com",
     description="A package containing tools for data engineering containers.",
     long_description=long_description,
     long_description_content_type="text/markdown",

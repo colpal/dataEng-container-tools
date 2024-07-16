@@ -342,7 +342,7 @@ class command_line_arguments:
         self.check_args()
 
         if self.__secret_locations:
-            setup_stdout(self.__args.secret_locations.values())
+            setup_stdout()
 
     def __str__(self):
         return self.__args.__str__()
@@ -437,21 +437,22 @@ class command_line_arguments:
             of secrets found automatically. The key is the name of the file with '.json' removed
             and the value is the loaded secret file.
         """
-        return_list = {}
+        return_dict = {}
         secret_list = None
-        if self.__secret_locations:
-            secret_list = self.__args.secret_locations
-        elif len(secrets_files) > 0:
+        
+        if len(secrets_files) > 0:
             secret_list = secrets_files
         else:
             return None
+        
         for item in secret_list:
             try:
-                return_list[item.strip('.json').split('/')[-1]] = json.load(
+                return_dict[item.strip('.json').split('/')[-1]] = json.load(
                     open(item, 'r'))
             except ValueError:
                 print(item, "is not a properly formatted json file.")
-        return return_list
+
+        return return_dict
 
     def get_pandas_kwargs(self):
         kwargs = {
