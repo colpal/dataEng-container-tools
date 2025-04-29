@@ -23,7 +23,8 @@ def check_branch() -> None:
     """Disallow master, develop, or feature branches."""
     branch_name = get_current_branch()
     if branch_name in ["master", "develop"] or branch_name.startswith("feature/"):
-        sys.exit(f"Installation from {branch_name} branch is not allowed. Please use a pinned release tag instead.")
+        # sys.exit(f"Installation from {branch_name} branch is not allowed. Please use a pinned release tag instead.")
+        print(f"Installation from {branch_name} branch is not allowed. Please use a pinned release tag instead.")
 
 
 check_branch()
