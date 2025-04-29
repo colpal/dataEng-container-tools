@@ -27,7 +27,7 @@ from google.cloud.bigquery.job import CopyJob, CopyJobConfig
 from google.cloud.bigquery.job import WriteDisposition
 from google.cloud.bigquery.enums import SourceFormat
 from google.cloud.bigquery import DatasetReference, TableReference
-from google.cloud.exceptions import NotFound
+
 
 class BQ:
     """Interacts with BigQuery.
@@ -153,11 +153,6 @@ class BQ:
         job_results = {}
 
         client = self.bq_client
-
-        try:
-            client.get_table(table_id)
-        except NotFound:
-            raise NotFound(f"Create {table_id} using terraform in Github before running the container")
 
         project_id, ds_id, table_name = table_id.split(".")
         dataset = DatasetReference(project_id, ds_id)
