@@ -1,0 +1,42 @@
+[project]
+name = "dataEng-container-tools"
+version = "1.0.0"
+description = "A package containing tools for data engineering containers."
+readme = "README.md"
+maintainers = [
+    { name = "CP DE Team", email = "git_data_science_engineering@colpal.com" },
+]
+dependencies = [
+    "pandas",
+    "google-cloud-storage",
+    "google-cloud-bigquery",
+    "google-cloud-datastore",
+    "openpyxl",
+    "pyarrow",
+]
+requires-python = ">=3.9"
+license = { text = "MIT License" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+homepage = "https://github.com/colpal/dataEng-container-tools"
+download = "https://github.com/colpal/dataEng-container-tools/releases"
+tracker = "https://github.com/colpal/dataEng-container-tools/issues"
+
+[project.optional-dependencies]
+tests = ["ruff>=0.11.7"]
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[tool.ruff]
+line-length = 120
+select = ["ALL"]
+target-version = "py39"
+exclude = [".git", ".vscode", ".venv", "__pycache__", ".eggs", "build", "dist"]
