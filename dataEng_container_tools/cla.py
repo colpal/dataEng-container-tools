@@ -114,12 +114,10 @@ class command_line_secret:
 
     Attributes:
         GCS: Default location for GCP storage unless overwritten.
-        BQ: Default location for GCP BigQuery unless overwritten.
         Others: Keys from input of the init function.
     """
 
     GCS = default_secret_locations["GCS"]
-    BQ = default_secret_locations["BQ"]
     # SF = default_secret_locations["SF"] Not Yet Added
 
     def __init__(self, kwargs):

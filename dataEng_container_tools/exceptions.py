@@ -220,35 +220,6 @@ class InvalidDagParameters(Container_Tools_Error):
         super().__init__(message=self.message)
 
 
-class BQInvalidCredential(Container_Tools_Error):
-    """
-    since can't write to bq, no need
-    to retry mark it as success
-    """
-    def __init__(self, message='Invalid BQ Credential'):
-        self.message = message
-        super().__init__(message=self.message)
-
-
-class BQNoSuchTable(Container_Tools_Error):
-    """
-    No such table exists in big query
-    """
-    def __init__(self, message='NO table found'):
-        self.message = message
-        super().__init__(message=self.message)
-
-
-class BQInvalidSchema(Container_Tools_Error):
-    """
-    throw exception if data to be load into BQ table
-    has different schema
-    """
-    def __init__(self, message='Invalid BQ Schema'):
-        self.message = message
-        super().__init__(message=self.message)
-
-
 class StorageCredentialNotFound(Container_Tools_Error):
     """
     Storage credentials not found for gcs
@@ -273,9 +244,6 @@ exception_dict = {
     InvalidJobConfig.__name__: "failure",
     StorageError.__name__: "success",
     InvalidDagParameters.__name__: "failure",
-    BQInvalidCredential.__name__: "success",
-    BQNoSuchTable.__name__: "success",
-    BQInvalidSchema.__name__: "success",
     StorageCredentialNotFound.__name__: "success",
     Exception.__name__: "failure"
 }
