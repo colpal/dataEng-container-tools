@@ -12,6 +12,7 @@ dependencies = [
     "google-cloud-datastore",
     "openpyxl",
     "pyarrow",
+    "psutil",
 ]
 requires-python = ">=3.9"
 license = { text = "MIT License" }
