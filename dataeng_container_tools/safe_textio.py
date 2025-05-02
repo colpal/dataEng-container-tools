@@ -10,18 +10,16 @@ and the list of secret files automatically found in the default secret folder.
 Typical usage example:
 
     setup_default_stdio()
-    print('Secret Information')    # prints normally
+    print("Secret Information")    # prints "Secret Information"
     SafeTextIO.add_words('Secret')
-    print('Secret Information)     # prints '****** Information'
+    print("Secret Information)     # prints "******* Information"
 
 """
 
 from __future__ import annotations
 
-import json
 import logging
 import sys
-from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, Protocol, TextIO
 
 if TYPE_CHECKING:
@@ -29,20 +27,13 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("Container Tools")
 
+
 class SupportsStr(Protocol):
     """A protocol that defines a __str__ method."""
 
     def __str__(self) -> str:
         """Return a string representation of the object."""
         ...
-
-
-default_secret_folder = Path("/vault/secrets/")
-default_secret_locations = {
-    "GCS": default_secret_folder / "gcp-sa-storage.json",
-    # "SF" : default_secret_folder / 'sf_creds.json'
-}
-secrets_files = []
 
 
 class SafeTextIO(TextIO):
@@ -106,48 +97,6 @@ class SafeTextIO(TextIO):
         for item in bad_words:
             item_str = str(item)
             cls.bad_words[item_str] = len(item_str)
-
-
-def _process_secret(file_path: Path, bad_words_set: set) -> None:
-    try:
-        with file_path.open() as f:
-            secret = json.load(f)
-        these_bad_words = set(secret.values())
-        bad_words_set.update(these_bad_words)
-        for word in these_bad_words:
-            bad_words_set.add(json.dumps(str(word)))
-            bad_words_set.add(json.dumps(str(word)).encode("unicode-escape").decode())
-            bad_words_set.add(str(word).encode("unicode-escape").decode())
-    except ValueError:
-        logger.info("%s is not a properly formatted json file.", file_path.as_posix())
-
-
-def add_secrets_folder(folder: str | Path = default_secret_folder) -> None:
-    """Add the contents of a list of files to the words to censor from output.
-
-    For each JSON location specified in the input, this method will open the JSON,
-    parse its contents, and add the contents to the list of of words to censor from
-    output. It adds the plaintext, the JSON loaded value, and the JSON dumped version of
-    the value.
-
-    Args:
-      folder: An iterable of strings representing the locations of JSON files
-        whose contents should be censored from output.
-
-    """
-    folder_path = Path(folder)
-    if not folder_path.exists():
-        logger.info(
-            "No secret files found in default directory. This is normal when running locally.",
-        )
-        return
-
-    bad_words = set()
-    files = [file_path for file_path in default_secret_folder.glob("**/*") if file_path.is_file()]
-    logger.info("Found these secret files: %s", [file.as_posix() for file in files])
-    for file in files:
-        _process_secret(file, bad_words)
-    SafeTextIO.add_words(bad_words)
 
 
 def setup_default_stdio() -> None:

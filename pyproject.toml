@@ -1,6 +1,6 @@
 [project]
 name = "dataEng-container-tools"
-version = "1.0.0"
+dynamic = ["version"]
 description = "A package containing tools for data engineering containers."
 readme = "README.md"
 maintainers = [
@@ -40,3 +40,10 @@ line-length = 120
 select = ["ALL"]
 target-version = "py39"
 exclude = [".git", ".vscode", ".venv", "__pycache__", ".eggs", "build", "dist"]
+
+[tool.ruff.lint.pylint]
+max-args = 15
+max-branches = 20
+max-statements = 75
+[tool.ruff.lint.mccabe]
+max-complexity = 20
