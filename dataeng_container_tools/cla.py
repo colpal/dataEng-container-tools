@@ -1,16 +1,16 @@
 """Tools for retrieving command line inputs.
 
 Deals with receiving input from the command line. Has three
-classes: `custom_command_line_argument`, `command_line_argument_type`,
-and `command_line_arguments`. `commnad_line_arguments` contains most
-of the functionality. `command_line_argument_type` is an enumeration.
-`custom_command_line_argument` is a wrapper for `parser.add_argument()`.
+classes: `CustomCommandLineArgument`, `CommandLineArgumentType`,
+and `CommandLineArguments`. `CommandLineArguments` contains most
+of the functionality. `CommandLineArgumentType` is an enumeration.
+`CustomCommandLineArgument` is a wrapper for `parser.add_argument()`.
 
 Typical usage example:
 
-    my_inputs = command_line_arguments(secret_locations=command_line_argument_type.OPTIONAL,
-                                    input_files=command_line_argument_type.REQUIRED,
-                                    output_files=command_line_argument_type.REQUIRED)
+    my_inputs = CommandLineArguments(secret_locations=CommandLineArgumentType.OPTIONAL,
+                                    input_files=CommandLineArgumentType.REQUIRED,
+                                    output_files=CommandLineArgumentType.REQUIRED)
 
     input_uris = my_inputs.get_input_uris()
     output_uris = my_inputs.get_output_uris()
@@ -18,62 +18,76 @@ Typical usage example:
     file_io = gcs_file_io(gcs_secret_location = secret_locations.GCS)
 """
 
+from __future__ import annotations
+
 import argparse
 import json
-import sys
-from enum import Enum
-from .safe_stdout import setup_stdout, default_secret_locations, secrets_files
+import logging
 import os
+from enum import Enum
+from typing import TYPE_CHECKING, Any
+
+from . import __version__
+from .secrets_manager import SecretManager
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+logger = logging.getLogger("Container Tools")
 
 
-class custom_command_line_argument:
+class CustomCommandLineArgument:
     """Class for creating custom command line arguments.
 
-    This class is used for creating custom command line arguments. A
-    list of these objects can be passed into `command_line_arguments` which
-    will add them as command line arguments, parse the inputs, and return the results.
-    Objects of this class have all the same attributes available to `parser.add_argument()`.
+    Wrapper of `argparse.add_argument`. <br />
+    Source: https://github.com/python/typeshed/blob/30b16c168d428f2690473e8d317c5eb240e7000e/stdlib/argparse.pyi
 
-    Attributes:
-        name: A string to Argument name.
-        action: A string indicating the basic type of action to be taken when this argument is encountered at the command line.
-        nargs: An integer indicating the number of command-line arguments that should be consumed.
-        const: A constant value required by some action and nargs selections.
-        default: The value produced if the argument is absent from the command line and if it is absent from the namespace object.
-        data_type: The type to which the command-line argument should be converted.
-        choices: A container of the allowable values for the argument.
-        required: A boolean indicating whether or not the command-line option may be omitted (optionals only).
-        help_message: A string providing a brief description of what the argument does.
-        metavar: A string indicating the name for the argument in usage messages.
-        dest: A string indicating the name of the attribute to be added to the object returned by parse_args().
+    This class is used for creating custom command line arguments. A
+    list of these objects can be passed into `CommandLineArguments` which
+    will add them as command line arguments, parse the inputs, and return the results.
+
     """
 
-    def __init__(self,
-                 name,
-                 action=None,
-                 nargs=None,
-                 const=None,
-                 default=None,
-                 data_type=None,
-                 choices=None,
-                 required=None,
-                 help_message=None,
-                 metavar=None,
-                 dest=None):
-        """Initializes custom_command_line_arguments with desired configuration.
+    def __init__(
+        self,
+        name: str,
+        *,
+        # str covers predefined actions ("store_true", "count", etc.)
+        action: str | type[argparse.Action] = ...,
+        # more precisely, Literal["?", "*", "+", "...", "A...", "==SUPPRESS=="]
+        nargs: int | str | None = None,
+        const: Any = ...,  # noqa: ANN401
+        default: Any = ...,  # noqa: ANN401
+        data_type: argparse._ActionType = ...,
+        choices: Iterable[argparse._T] | None = ...,
+        required: bool = ...,
+        help_message: str | None = ...,
+        metavar: str | tuple[str, ...] | None = ...,
+        dest: str | None = ...,
+        version: str = ...,
+        **kwargs: Any,  # noqa: ANN401
+    ) -> None:
+        """Initialize CustomCommandLineArgument with desired configuration.
+
+        See: https://docs.python.org/3.9/library/argparse.html
 
         Args:
-            name: A string to Argument name.
-            action: A string indicating the basic type of action to be taken when this argument is encountered at the command line.
-            nargs: An integer indicating the number of command-line arguments that should be consumed.
-            const: A constant value required by some action and nargs selections.
-            default: The value produced if the argument is absent from the command line and if it is absent from the namespace object.
-            data_type: The type to which the command-line argument should be converted.
-            choices: A container of the allowable values for the argument.
-            required: A boolean indicating whether or not the command-line option may be omitted (optionals only).
-            help_message: A string providing a brief description of what the argument does.
-            metavar: A string indicating the name for the argument in usage messages.
-            dest: A string indicating the name of the attribute to be added to the object returned by parse_args().
+            name (str): Argument name.
+            action (str | type[argparse.Action]): Indicates the basic type of action to be taken when this
+                argument is encountered at the command line.
+            nargs (int | str | None): Indicates the number of command-line arguments that should be consumed.
+            const (Any): A constant value required by some action and nargs selections.
+            default (Any): The value produced if the argument is absent from the command line and if it is
+                absent from the namespace object.
+            data_type (argparse._ActionType): The type to which the command-line argument should be converted.
+            choices (Iterable[argparse._T] | None): A container of the allowable values for the argument.
+            required (bool): Indicates whether or not the command-line option may be omitted (optionals only).
+            help_message (str | None): A brief description of what the argument does.
+            metavar (str | tuple[str, ...] | None): The name for the argument in usage messages.
+            dest (str | None): The name of the attribute to be added to the object returned by parse_args().
+            version (str): Version of the argument.
+            kwargs (Any): Additional keyword arguments.
+
         """
         self.name = name
         self.action = action
@@ -81,50 +95,69 @@ class custom_command_line_argument:
         self.const = const
         self.default = default
         self.data_type = data_type
-        self.choices = choices
+        self.choices = choices or []
         self.required = required
         self.help_message = help_message
         self.metavar = metavar
         self.dest = dest
+        self.version = version
+        self.kwargs = kwargs
 
-    def __str__(self):
-        return ("name: " + self.name + ", " + "action: " + self.action + ", " +
-                "nargs: " + self.nargs + ", " + "const: " + self.const + ", " +
-                "default: " + self.default + ", " + "data_type: " +
-                self.data_type + ", " + "choices: " + self.choices + ", " +
-                "required: " + self.required + ", " + "help_message: " +
-                self.help_message + ", " + "metavar: " + self.metavar + ", " +
-                "dest: " + self.dest)
+    def __str__(self) -> str:
+        """Convert argument to a string."""
+        attributes = [
+            f"name: {self.name}",
+            f"action: {self.action}",
+            f"nargs: {self.nargs}",
+            f"const: {self.const}",
+            f"default: {self.default}",
+            f"data_type: {self.data_type}",
+            f"choices: {self.choices}",
+            f"required: {self.required}",
+            f"help_message: {self.help_message}",
+            f"metavar: {self.metavar}",
+            f"dest: {self.dest}",
+            f"version: {self.version}",
+            f"kwargs: {self.kwargs}",
+        ]
+        return ", ".join(attributes)
 
 
-class command_line_argument_type(Enum):
-    """Enumeration class for use with command_line_arguments.
+class CommandLineArgumentType(Enum):
+    """Enumeration class for use with CommandLineArguments.
 
     Attributes:
+        UNUSED: For when a command line argument should not be used.
         OPTIONAL: For when a command line argument should be optional.
         REQUIRED: For when a command line argument should be required.
+
     """
+
+    UNUSED = None
     OPTIONAL = False
     REQUIRED = True
 
 
-class command_line_secret:
-    """Takes in a dictionary of secret names and locations and adds the keys and values to the
-    class attributes. This allows secrets to be called by name but not in a dictionary fashion.
+class CommandLineSecret:
+    """Takes in a dictionary of secret names and locations and adds the keys and values to the class attributes.
+
+    This allows secrets to be called by name but not in a dictionary fashion.
 
     Attributes:
         GCS: Default location for GCP storage unless overwritten.
         Others: Keys from input of the init function.
+
     """
 
-    GCS = default_secret_locations["GCS"]
-    # SF = default_secret_locations["SF"] Not Yet Added
+    GCS = SecretManager.DEFAULT_SECRET_LOCATIONS["GCS"]
+    SF = SecretManager.DEFAULT_SECRET_LOCATIONS["SF"]
 
-    def __init__(self, kwargs):
+    def __init__(self, kwargs: dict) -> None:
+        """Initialize secret locations dict."""
         self.__dict__.update(**kwargs)
 
 
-class command_line_arguments:
+class CommandLineArguments:
     """Creates, parses, and retrieves command line inputs.
 
     This class creates command line arguments that are typically
@@ -134,53 +167,42 @@ class command_line_arguments:
     Includes helper functions for using the command line inputs.
     """
 
-    __default_secret_locations = default_secret_locations
-
-    def __init__(self,
-                 input_files=None,
-                 output_files=None,
-                 secret_locations=None,
-                 default_file_type=None,
-                 custom_inputs=None,
-                 description=None,
-                 input_dtypes=None,
-                 running_local=None,
-                 identifying_tags=None,
-                 input_pandas_kwargs=None,
-                 output_pandas_kwargs=None,
-                 parser=None):
-        """Initializes command_line_arguments with desired configuration.
+    def __init__(
+        self,
+        input_files: CommandLineArgumentType = CommandLineArgumentType.UNUSED,
+        output_files: CommandLineArgumentType = CommandLineArgumentType.UNUSED,
+        secret_locations: CommandLineArgumentType = CommandLineArgumentType.UNUSED,
+        default_file_type: CommandLineArgumentType = CommandLineArgumentType.UNUSED,
+        custom_inputs: list[CustomCommandLineArgument] | None = None,
+        description: str | None = None,
+        input_dtypes: CommandLineArgumentType = CommandLineArgumentType.UNUSED,
+        running_local: CommandLineArgumentType = CommandLineArgumentType.UNUSED,
+        identifying_tags: CommandLineArgumentType = CommandLineArgumentType.UNUSED,
+        parser: argparse.ArgumentParser | None = None,
+        *,
+        parse_known_args: bool = True,
+    ) -> None:
+        """Initialize CommandLineArguments with desired configuration.
 
         Args:
-            input_files: Optional command_line_argument_type. Defaults to None. If REQUIRED,
-                will add --input_bucket_names, --input_paths, and --input_filenames as required
-                command line inputs. If OPTIONAL, will add them as optional. If None they will
-                not be added.
-            output_files: Optional command_line_argument_type. Defaults to None. If REQUIRED,
-                will add --output_bucket_names, --output_paths, and --output_filenames as required
-                command line inputs. If command_line_argument_type.OPTIONAL, will add them as
-                optional. If None they will not be added.
-            secret_locations: Optional command_line_argument_type. Defaults to None. If REQUIRED,
-                will add --gcs_secret_locations as required command line input. If OPTIONAL,
-                will add it as optional. If None, it will not be added.
-            default_file_type: Optional command_line_argument_type. Defaults to None. If REQUIRED,
-                will add --default_file_type as required command line argument. If OPTIONAL,
-                will add it as optional. Input can be one of parquet, csv, pkl, or json, with
-                the default being parquet. If None, the command line argument will not be added.
-            custom_inputs: Optional list of custom_command_line_arguments. Defaults to None.
-                All items in list will be added to the command line arguments.
-            description : Optional string. Defaults to None. A description to be printed when the
-                command line argument --help is used.
-            input_dtypes: Optional command_line_argument_type. Defaults to None. If input_files
-                is None, then this does nothing. If input_files is not None and input_dtypes
-                is REQUIRED, will add --input_dtypes as a required command line input. If OPTIONAL,
-                will add it as optional. Input is a JSON dictionary of (column: type) pairs.
-            parser: Optional argparse.ArgumentParser. Defaults to None. A parser on which to
-                add the command line arguments and parse. If None one will be created.
-            running_local: Optional boolean. Defaults to False. A flag for determining whether
-                or not the script is running locally and so should not attempt to contact GCP.
-                Defaults to False.
+            input_files (CommandLineArgumentType): Determines if input files are required, optional, or unused.
+            output_files (CommandLineArgumentType): Determines if output files are required, optional, or unused.
+            secret_locations (CommandLineArgumentType): Determines if secret locations are required, optional,
+                or unused.
+            default_file_type (CommandLineArgumentType): Specifies the default file type (e.g., parquet, csv).
+            custom_inputs (list[CustomCommandLineArgument] | None): List of custom command line arguments.
+            description (str | None): Description for the command line parser.
+            input_dtypes (CommandLineArgumentType): Determines if input data types are required, optional, or unused.
+            running_local (CommandLineArgumentType): Flag to indicate if the script is running locally.
+            identifying_tags (CommandLineArgumentType): Determines if identifying tags are required, optional,
+                or unused.
+            parser (argparse.ArgumentParser | None): Custom parser for command line arguments.
+            parse_known_args (bool): Whether to parse known arguments only.
+
         """
+        if custom_inputs is None:
+            custom_inputs = []
+
         self.__input_files = input_files
         self.__output_files = output_files
         self.__secret_locations = secret_locations
@@ -189,193 +211,202 @@ class command_line_arguments:
         self.__description = description
         self.__input_dtypes = input_dtypes
         self.__running_local = running_local
-        self.__input_pandas_kwargs = input_pandas_kwargs
-        self.__output_pandas_kwargs = output_pandas_kwargs
-        parser = parser if parser else argparse.ArgumentParser(
-            description=description)
+        self.__identifying_tags = identifying_tags
+        parser = parser if parser else argparse.ArgumentParser(description=description)
 
-        if input_files:
-            parser.add_argument("--input_bucket_names",
-                                type=str,
-                                required=input_files.value,
-                                nargs='+',
-                                help="GCS Buckets to read from.")
-
-            parser.add_argument("--input_paths",
-                                type=str,
-                                required=input_files.value,
-                                nargs='+',
-                                help="GCS folders in bucket to read file from.")
-
-            parser.add_argument("--input_filenames",
-                                type=str,
-                                required=input_files.value,
-                                nargs='+',
-                                help="Filenames to read file from.")
-            parser.add_argument("--input_delimiters",
-                                type=str,
-                                required=False,
-                                nargs='+',
-                                help="Delimiters for input files")
-            if input_dtypes:
-                parser.add_argument(
-                    "--input_dtypes",
-                    type=json.loads,
-                    required=input_dtypes.value,
-                    nargs='+',
-                    help="JSON dictionaries of (column: type) pairs to cast columns to"
-                )
-            if input_pandas_kwargs:
-                parser.add_argument("--input_pandas_kwargs",
-                                    type=json.loads,
-                                    required=input_pandas_kwargs.value,
-                                    help="JSON dictionary of additional arguments for reading a file to a pandas dataframe")
-
-        if output_files:
-            parser.add_argument("--output_bucket_names",
-                                type=str,
-                                required=output_files.value,
-                                nargs='+',
-                                help="GCS Bucket to write to.")
-
-            parser.add_argument("--output_paths",
-                                type=str,
-                                required=output_files.value,
-                                nargs='+',
-                                help="GCS folder in bucket to write file to.")
-
-            parser.add_argument("--output_filenames",
-                                type=str,
-                                required=output_files.value,
-                                nargs='+',
-                                help="Filename to write file to.")
-            parser.add_argument("--output_delimiters",
-                                type=str,
-                                required=False,
-                                nargs='+',
-                                help="Delimiters for output files")
-            if output_pandas_kwargs:
-                parser.add_argument("--output_pandas_kwargs",
-                                    type=json.loads,
-                                    required=output_pandas_kwargs.value,
-                                    help="JSON dictionary of additional arguments for reading a file to a pandas dataframe")
-
-        if secret_locations:
-            parser.add_argument(
-                "--secret_locations",
-                type=json.loads,
-                required=secret_locations.value,
-                default=self.__default_secret_locations,
-                help="Dictionary of the locations of secrets injected by Vault. Default: '" +
-                str(self.__default_secret_locations) + "'.")
-
-        if default_file_type:
-            parser.add_argument(
-                "--default_file_type",
-                type=str,
-                required=default_file_type.value,
-                choices=["parquet", "csv", "pkl", "json"],
-                default="parquet",
-                help="How to handle input/output files if no file extension found. Choice of 'parquet', 'csv', 'pkl', and 'json'. Default 'parquet'."
-            )
-
-        if running_local:
-            parser.add_argument(
-                "--running_local",
-                type=bool,
-                required=running_local.value,
-                default=False,
-                help="If the container is running locally (no contact with GCP)."
-            )
-
-        if identifying_tags:
-            parser.add_argument("--dag_id",
-                                type=str,
-                                required=identifying_tags.value,
-                                help="The DAG ID")
-            parser.add_argument("--run_id",
-                                type=str,
-                                required=identifying_tags.value,
-                                help="The run ID")
-            parser.add_argument("--namespace",
-                                type=str,
-                                required=identifying_tags.value,
-                                help="The namespace")
-            parser.add_argument("--pod_name",
-                                type=str,
-                                required=identifying_tags.value,
-                                help="The pod name")
+        self.__add_container_args(parser)
 
         if custom_inputs:
             for item in custom_inputs:
                 if item.action:
-                    parser.add_argument("--" + item.name,
-                                        required=item.required,
-                                        action=item.action,
-                                        help=item.help_message)
+                    parser.add_argument(
+                        "--" + item.name,
+                        required=item.required,
+                        action=item.action,
+                        help=item.help_message,
+                    )
                 else:
-                    parser.add_argument("--" + item.name,
-                                        action=item.action,
-                                        nargs=item.nargs,
-                                        const=item.const,
-                                        default=item.default,
-                                        type=item.data_type,
-                                        choices=item.choices,
-                                        required=item.required,
-                                        help=item.help_message,
-                                        metavar=item.metavar,
-                                        dest=item.dest)
+                    parser.add_argument(
+                        "--" + item.name,
+                        action=item.action,
+                        nargs=item.nargs,
+                        const=item.const,
+                        default=item.default,
+                        type=item.data_type,
+                        choices=item.choices,
+                        required=item.required,
+                        help=item.help_message,
+                        metavar=item.metavar,
+                        dest=item.dest,
+                        version=item.version,
+                        kwargs=item.kwargs,
+                    )
         try:
-            self.__args = parser.parse_args()
-        except SystemExit:
-            print(f"\nARGUMENT ERROR: Reference the dataEng_container_tools README at https://github.com/colpal/dataEng-container-tools/blob/v0.6.1/README.md for examples of new updates from v0.6.1.\n")
-            sys.exit()
-        print("CLA Input:", self)
+            if parse_known_args:
+                self.__args, _ = parser.parse_known_args()  # Discard extra args
+            else:
+                self.__args = parser.parse_args()
+        except Exception:
+            logger.exception(
+                "ARGUMENT ERROR: Reference the dataEng_container_tools README at "
+                "https://github.com/colpal/dataEng-container-tools/blob/v%(version)s/README.md "
+                "for examples of new updates from v%(version)s.",
+                extra={"version": __version__},
+            )
+            raise
+        logger.info("CLA Input: %s", self)
 
-        if identifying_tags:
+        if identifying_tags.value is not None:
             os.environ["DAG_ID"] = self.__args.dag_id
             os.environ["RUN_ID"] = self.__args.run_id
             os.environ["NAMESPACE"] = self.__args.namespace
             os.environ["POD_NAME"] = self.__args.pod_name
-        self.check_args()
 
-        if self.__secret_locations:
-            setup_stdout()
+    def __add_container_args(self, parser: argparse.ArgumentParser) -> None:
+        if self.__input_files.value is not None:
+            parser.add_argument(
+                "--input_bucket_names",
+                type=str,
+                required=self.__input_files.value,
+                nargs="+",
+                help="GCS Buckets to read from.",
+            )
+            parser.add_argument(
+                "--input_paths",
+                type=str,
+                required=self.__input_files.value,
+                nargs="+",
+                help="GCS folders in bucket to read file from.",
+            )
+            parser.add_argument(
+                "--input_filenames",
+                type=str,
+                required=self.__input_files.value,
+                nargs="+",
+                help="Filenames to read file from.",
+            )
+            parser.add_argument(
+                "--input_delimiters",
+                type=str,
+                required=False,
+                nargs="+",
+                help="Delimiters for input files",
+            )
 
-    def __str__(self):
+            if self.__input_dtypes.value is not None:
+                parser.add_argument(
+                    "--input_dtypes",
+                    type=json.loads,
+                    required=self.__input_dtypes.value,
+                    nargs="+",
+                    help="JSON dictionaries of (column: type) pairs to cast columns to",
+                )
+
+        if self.__output_files.value is not None:
+            parser.add_argument(
+                "--output_bucket_names",
+                type=str,
+                required=self.__output_files.value,
+                nargs="+",
+                help="GCS Bucket to write to.",
+            )
+            parser.add_argument(
+                "--output_paths",
+                type=str,
+                required=self.__output_files.value,
+                nargs="+",
+                help="GCS folder in bucket to write file to.",
+            )
+            parser.add_argument(
+                "--output_filenames",
+                type=str,
+                required=self.__output_files.value,
+                nargs="+",
+                help="Filename to write file to.",
+            )
+            parser.add_argument(
+                "--output_delimiters",
+                type=str,
+                required=False,
+                nargs="+",
+                help="Delimiters for output files",
+            )
+
+        if self.__secret_locations.value is not None:
+            parser.add_argument(
+                "--secret_locations",
+                type=json.loads,
+                required=self.__secret_locations.value,
+                default=SecretManager.DEFAULT_SECRET_LOCATIONS,
+                help="Dictionary of the locations of secrets injected by Vault. Default: '"
+                + str(SecretManager.DEFAULT_SECRET_LOCATIONS)
+                + "'.",
+            )
+
+        if self.__default_file_type.value is not None:
+            parser.add_argument(
+                "--default_file_type",
+                type=str,
+                required=self.__default_file_type.value,
+                choices=["parquet", "csv", "pkl", "json"],
+                default="parquet",
+                help=(
+                    "How to handle input/output files if no file extension found."
+                    "Choice of 'parquet', 'csv', 'pkl', and 'json'. Default 'parquet'."
+                ),
+            )
+
+        if self.__running_local.value is not None:
+            parser.add_argument(
+                "--running_local",
+                type=bool,
+                required=self.__running_local.value,
+                default=False,
+                help="If the container is running locally (no contact with GCP).",
+            )
+
+        if self.__identifying_tags.value is not None:
+            parser.add_argument("--dag_id", type=str, required=self.__identifying_tags.value, help="The DAG ID")
+            parser.add_argument("--run_id", type=str, required=self.__identifying_tags.value, help="The run ID")
+            parser.add_argument("--namespace", type=str, required=self.__identifying_tags.value, help="The namespace")
+            parser.add_argument("--pod_name", type=str, required=self.__identifying_tags.value, help="The pod name")
+
+    def __str__(self) -> str:
+        """Print the string value of the argparse args."""
         return self.__args.__str__()
 
-    def get_arguments(self):
-        """Retrieves the arguments passed in through the command line.
+    def get_arguments(self) -> argparse.Namespace:
+        """Retrieve the arguments passed in through the command line.
 
         Returns:
-            A Namespace object with all of the command line arguments.
+            argparse.Namespace: A Namespace object with all of the command line arguments.
+
         """
         return self.__args
 
-    def get_input_dtypes(self):
-        """Retrieves the input dtypes passed in through the command line.
+    def get_input_dtypes(self) -> ...:
+        """Retrieve the input dtypes passed in through the command line.
 
         Returns:
-            None if dtypes were not asked for in intialisation or the loaded JSON
+            None if dtypes were not asked for in initialization or the loaded JSON
             object passed to input_dtypes through the command line otherwise.
+
         """
-        if not self.__input_dtypes:
-            return None
         return self.__args.input_dtypes
 
-    def get_input_uris(self):
-        """Retrieves the input URIs passed in through the command line.
+    def get_input_uris(self) -> list[str]:
+        """Retrieve the input URIs passed in through the command line.
 
         Returns:
-            A list of all input URIs passed in through the command line. URIs
+            list[str]: A list of all input URIs passed in through the command line. URIs
             are of the format 'gs://bucket_name/input_path/filename'.
+
         """
         if not self.__input_files:
             return []
         constant_bucket = False
-        bucket_name = ''
-        output = []
+        bucket_name = ""
+        output: list[str] = []
         if len(self.__args.input_bucket_names) == 1:
             constant_bucket = True
             bucket_name = self.__args.input_bucket_names[0]
@@ -383,23 +414,27 @@ class command_line_arguments:
             if not constant_bucket:
                 bucket_name = self.__args.input_bucket_names[pos]
             prefix = r"gs://"
-            uri_body = f"{bucket_name}/{self.__args.input_paths[pos]}/{filename}".replace(
-                "/ /", "/").replace("/./", "/").replace("//", "/")
+            uri_body = (
+                f"{bucket_name}/{self.__args.input_paths[pos]}/{filename}".replace("/ /", "/")
+                .replace("/./", "/")
+                .replace("//", "/")
+            )
             output.append(prefix + uri_body)
         return output
 
-    def get_output_uris(self):
-        """Retrieves the output URIs passed in through the command line.
+    def get_output_uris(self) -> list[str]:
+        """Retrieve the output URIs passed in through the command line.
 
         Returns:
-            A list of all output URIs passed in through the command line. URIs
+            list[str]: A list of all output URIs passed in through the command line. URIs
             are of the format 'gs://bucket_name/output_path/filename'.
+
         """
         if not self.__output_files:
             return []
         constant_bucket = False
-        bucket_name = ''
-        output = []
+        bucket_name = ""
+        output: list[str] = []
         if len(self.__args.output_bucket_names) == 1:
             constant_bucket = True
             bucket_name = self.__args.output_bucket_names[0]
@@ -407,61 +442,34 @@ class command_line_arguments:
             if not constant_bucket:
                 bucket_name = self.__args.output_bucket_names[pos]
             prefix = r"gs://"
-            uri_body = f"{bucket_name}/{self.__args.output_paths[pos]}/{filename}".replace(
-                "/ /", "/").replace("/./", "/").replace("//", "/")
+            uri_body = (
+                f"{bucket_name}/{self.__args.output_paths[pos]}/{filename}".replace("/ /", "/")
+                .replace("/./", "/")
+                .replace("//", "/")
+            )
             output.append(prefix + uri_body)
         return output
 
-    def get_secret_locations(self):
-        """Retrieves the secret file locations passed in through the command line.
+    def get_secret_locations(self) -> CommandLineSecret | list | None:
+        """Retrieve the secret file locations passed in through the command line.
 
         Returns:
-            A list of all the secret file locations passed in through the command line. If
-            secret_locations was not asked for during initialization, returns a list of secrets
-            found automatically.
+            CommandLineSecret | list | None: A list of all the secret file locations passed in through the command line.
+                If secret_locations was not asked for during initialization, returns a list of secrets
+                found automatically.
+
         """
         if self.__secret_locations:
-            return command_line_secret(self.__args.secret_locations)
-        if len(secrets_files) > 0:
-            return secrets_files
+            return CommandLineSecret(self.__args.secret_locations)
+        if len(SecretManager.files) > 0:
+            return SecretManager.files
         return None
 
-    def get_secrets(self):
-        """Retrieves the secrets loaded from files specified through the command line.
 
-        Returns:
-            A dictionary of all the secrets specified through the command line. If
-            secret_locations was not asked for during initialization, returns a dictionary
-            of secrets found automatically. The key is the name of the file with '.json' removed
-            and the value is the loaded secret file.
-        """
-        return_dict = {}
-        secret_list = None
-        
-        if len(secrets_files) > 0:
-            secret_list = secrets_files
-        else:
-            return None
-        
-        for item in secret_list:
-            try:
-                return_dict[item.strip('.json').split('/')[-1]] = json.load(
-                    open(item, 'r'))
-            except ValueError:
-                print(item, "is not a properly formatted json file.")
+# Backwards compatability (deprecated)
+custom_command_line_argument = CustomCommandLineArgument
+command_line_argument_type = CommandLineArgumentType
+command_line_secret = CommandLineSecret
+command_line_arguments = CommandLineArguments
 
-        return return_dict
-
-    def get_pandas_kwargs(self):
-        kwargs = {
-            "input": self.__args.input_pandas_kwargs,
-            "output": self.__args.output_pandas_kwargs
-        }
-
-        return kwargs
-
-    def check_args(self):
-        """Ensures arguments are present and valid.
-        """
-        # TODO: Implement this
-        return
+command_line_arguments.get_secrets = lambda: SecretManager.secrets  # type: ignore  # noqa: PGH003
