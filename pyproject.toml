@@ -41,6 +41,9 @@ select = ["ALL"]
 target-version = "py39"
 exclude = [".git", ".vscode", ".venv", "__pycache__", ".eggs", "build", "dist"]
 
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
 [tool.ruff.lint.pylint]
 max-args = 15
 max-branches = 20
