@@ -464,12 +464,3 @@ class CommandLineArguments:
         if len(SecretManager.files) > 0:
             return SecretManager.files
         return None
-
-
-# Backwards compatability (deprecated)
-custom_command_line_argument = CustomCommandLineArgument
-command_line_argument_type = CommandLineArgumentType
-command_line_secret = CommandLineSecret
-command_line_arguments = CommandLineArguments
-
-command_line_arguments.get_secrets = lambda: SecretManager.secrets  # type: ignore  # noqa: PGH003

@@ -17,8 +17,8 @@ class SecretManager:
 
     DEFAULT_SECRET_FOLDER: Final = Path("/vault/secrets/")
     DEFAULT_SECRET_LOCATIONS: Final = {
-        "GCS": DEFAULT_SECRET_FOLDER / "gcp-sa-storage.json",
-        "SF": DEFAULT_SECRET_FOLDER / "sf_creds.json",
+        "GCS": str(DEFAULT_SECRET_FOLDER / "gcp-sa-storage.json"),
+        "SF": str(DEFAULT_SECRET_FOLDER / "sf_creds.json"),
     }
 
     files: ClassVar[list[Path]] = []
