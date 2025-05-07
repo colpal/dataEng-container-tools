@@ -30,7 +30,29 @@ if TYPE_CHECKING:
 logger = logging.getLogger("Container Tools")
 
 
-class BaseModule:
+class ModuleRegistryMeta(type):
+    """Metaclass that automatically registers BaseModule subclasses with SecretManager."""
+
+    def __init__(cls, name, bases, namespace) -> None:  # noqa: ANN001
+        """Initialize the class and register it with SecretManager if applicable.
+
+        Args:
+            cls: The class being created
+            name: Name of the class
+            bases: Tuple of base classes
+            namespace: Dictionary of class attributes
+        """
+        super().__init__(name, bases, namespace)
+        # Only register subclasses
+        if name != "BaseModule" and hasattr(cls, "MODULE_NAME") and hasattr(cls, "DEFAULT_SECRET_PATHS"):
+            # Import here to avoid circular imports
+            from dataeng_container_tools.secrets_manager import SecretManager
+
+            SecretManager.register_module(cls)
+            logger.debug("Auto-registered module %s with SecretManager", getattr(cls, "MODULE_NAME", "Unknown"))
+
+
+class BaseModule(metaclass=ModuleRegistryMeta):
     """Base class for all specialized modules.
 
     This abstract class defines the common interface and functionality that
@@ -68,7 +90,7 @@ class BaseModule:
 
         """
         self.local = local
-        self.client: Any = None
+        self.client: object = None
 
         # Initialize with default secret paths
         self.secret_paths = {}

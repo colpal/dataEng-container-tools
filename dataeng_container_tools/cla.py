@@ -144,16 +144,31 @@ class CommandLineSecret:
     This allows secrets to be called by name but not in a dictionary fashion.
 
     Attributes:
-        GCS: Default location for GCP storage unless overwritten.
-        Others: Keys from input of the init function.
-
+        GCS (str): Default location for GCP storage secret.
+        SF (str): Default location for Snowflake secret.
+        DB (str): Default location for Datastore secret.
+        Others: Additional keys from registered modules or input of the init function.
     """
 
-    GCS = SecretManager.DEFAULT_SECRET_LOCATIONS["GCS"]
-    SF = SecretManager.DEFAULT_SECRET_LOCATIONS["SF"]
+    # Add type hints for common attributes
+    GCS: str
+    SF: str
+    DB: str
 
     def __init__(self, kwargs: dict) -> None:
-        """Initialize secret locations dict."""
+        """Initialize secret locations dict.
+
+        Args:
+            kwargs: Dictionary of secret names and their locations.
+        """
+        # First get default paths from SecretManager
+        default_paths = SecretManager.get_all_secret_paths()
+
+        # Create attributes from default paths
+        for key, value in default_paths.items():
+            setattr(self, key, value)
+
+        # Override with any provided paths from kwargs
         self.__dict__.update(**kwargs)
 
 

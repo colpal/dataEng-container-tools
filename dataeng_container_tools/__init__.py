@@ -32,4 +32,5 @@ logger = configure_logger("Container Tools")
 
 # Initialize secrets and stdout/stderr bad words output
 setup_default_stdio()
+SecretManager.initialize_secret_paths()
 SecretManager.process_secret_folder()

@@ -53,22 +53,23 @@ class GCSFileIO(BaseModule):
 
     KNOWN_EXTENSIONS: Final = {".parquet", ".csv", ".pkl", ".xlsx", ".json"}
 
-    def __init__(self, gcs_secret_location: str | Path | None, *, local: bool = False) -> None:
+    def __init__(self, gcs_secret_location: str | Path | None = None, *, local: bool = False) -> None:
         """Initializes gcs_file_io with desired configuration.
 
         Args:
-            gcs_secret_location: Required. The location of the secret file
-                needed for GCS.
-            local: Optional. Defaults to False. If True, no contact
-                will be made with GCS.
+            gcs_secret_location: The location of the secret file needed for GCS.
+            local: Optional. Defaults to False. If True, no contact will be made with GCS.
         """
         override_secret_paths = {self.MODULE_NAME: gcs_secret_location} if gcs_secret_location else None
         super().__init__(override_secret_paths=override_secret_paths, local=local)
         self.gcs_secret_location = self.secret_paths[self.MODULE_NAME]
 
         if not self.local:
-            with self.gcs_secret_location.open() as f:
-                gcs_sa = json.load(f)
+            if not self.gcs_secret_location.exists():
+                msg = f"GCS credentials not found at {self.gcs_secret_location!s}"
+                raise FileNotFoundError(msg)
+
+            gcs_sa = json.loads(self.gcs_secret_location.read_text())
             self.client: storage.Client = storage.Client.from_service_account_info(gcs_sa)
         else:
             self.client: storage.Client = storage.Client()
