@@ -48,5 +48,7 @@ convention = "google"
 max-args = 15
 max-branches = 20
 max-statements = 75
+max-returns = 15
+
 [tool.ruff.lint.mccabe]
 max-complexity = 20

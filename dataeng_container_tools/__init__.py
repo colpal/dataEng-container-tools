@@ -9,14 +9,17 @@ from .cla import (
     CustomCommandLineArgument,
 )
 from .log_utils import configure_logger
+from .modules import GCS, GCSFileIO
 from .safe_textio import SafeTextIO, setup_default_stdio
 from .secrets_manager import SecretManager
 
 __all__ = [
+    "GCS",
     "CommandLineArgumentType",
     "CommandLineArguments",
     "CommandLineSecret",
     "CustomCommandLineArgument",
+    "GCSFileIO",
     "SafeTextIO",
     "SecretManager",
     "configure_logger",
