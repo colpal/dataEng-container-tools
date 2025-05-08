@@ -25,12 +25,10 @@ import json
 import logging
 import os
 from enum import Enum
-from typing import TYPE_CHECKING, Any
-
-from typing_extensions import Self
+from typing import TYPE_CHECKING, Any, ClassVar, final
 
 from . import __version__
-from .secrets_manager import SecretManager
+from .secrets_manager import SecretLocations, SecretManager
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -140,40 +138,7 @@ class CommandLineArgumentType(Enum):
     REQUIRED = True
 
 
-class CommandLineSecret:
-    """Takes in a dictionary of secret names and locations and adds the keys and values to the class attributes.
-
-    This allows secrets to be called by name but not in a dictionary fashion.
-
-    Attributes:
-        GCS (str): Default location for GCP storage secret.
-        SF (str): Default location for Snowflake secret.
-        DB (str): Default location for Datastore secret.
-        Others: Additional keys from registered modules or input of the init function.
-    """
-
-    # Add type hints for common attributes
-    GCS: str
-    SF: str
-    DB: str
-
-    def __init__(self, kwargs: dict) -> None:
-        """Initialize secret locations dict.
-
-        Args:
-            kwargs: Dictionary of secret names and their locations.
-        """
-        # First get default paths from SecretManager
-        default_paths = SecretManager.get_all_secret_paths()
-
-        # Create attributes from default paths
-        for key, value in default_paths.items():
-            setattr(self, key, value)
-
-        # Override with any provided paths from kwargs
-        self.__dict__.update(**kwargs)
-
-
+@final
 class CommandLineArguments:
     """Creates, parses, and retrieves command line inputs.
 
@@ -185,9 +150,9 @@ class CommandLineArguments:
     """
 
     # Singleton instance
-    instance: Self | None = None
+    _instance: ClassVar[CommandLineArguments | None] = None
 
-    def __new__(cls, *_args: ..., **_kwargs: ...) -> Self:
+    def __new__(cls, *_args: ..., **_kwargs: ...) -> CommandLineArguments:
         """Create a new instance of CommandLineArguments or return the existing one.
 
         Implements the singleton pattern to ensure only one instance exists.
@@ -195,9 +160,9 @@ class CommandLineArguments:
         Returns:
             CommandLineArguments: The singleton instance
         """
-        if cls.instance is None:
-            cls.instance = super().__new__(cls)
-        return cls.instance
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
     def __init__(
         self,
@@ -288,6 +253,11 @@ class CommandLineArguments:
             raise
         logger.info("CLA Input: %s", self)
 
+        # Update Secret Locations with args
+        if self.__secret_locations.value is not None:
+            SecretLocations().update(new_secret_locations=self.__args.secret_locations)
+
+        # Update env variables with args
         if identifying_tags.value is not None:
             os.environ["DAG_ID"] = self.__args.dag_id
             os.environ["RUN_ID"] = self.__args.run_id
@@ -369,9 +339,9 @@ class CommandLineArguments:
                 "--secret_locations",
                 type=json.loads,
                 required=self.__secret_locations.value,
-                default=SecretManager.get_all_secret_paths(),
+                default=SecretManager.get_module_secret_paths(),
                 help="Dictionary of the locations of secrets injected by Vault. Default: '"
-                + str(SecretManager.get_all_secret_paths())
+                + str(SecretManager.get_module_secret_paths())
                 + "'.",
             )
 
@@ -505,18 +475,3 @@ class CommandLineArguments:
             )
             output.append(prefix + uri_body)
         return output
-
-    def get_secret_locations(self) -> CommandLineSecret | list | None:
-        """Retrieve the secret file locations passed in through the command line.
-
-        Returns:
-            CommandLineSecret | list | None: A list of all the secret file locations passed in through the command line.
-                If secret_locations was not asked for during initialization, returns a list of secrets
-                found automatically.
-
-        """
-        if self.__secret_locations:
-            return CommandLineSecret(self.__args.secret_locations)
-        if len(SecretManager.files) > 0:
-            return SecretManager.files
-        return None

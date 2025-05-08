@@ -5,23 +5,22 @@ __version__ = "1.0.0"
 from .cla import (
     CommandLineArguments,
     CommandLineArgumentType,
-    CommandLineSecret,
     CustomCommandLineArgument,
 )
 from .log_utils import configure_logger
 from .modules import DB, GCS, GCSFileIO
 from .safe_textio import SafeTextIO, setup_default_stdio
-from .secrets_manager import SecretManager
+from .secrets_manager import SecretLocations, SecretManager
 
 __all__ = [
     "DB",
     "GCS",
     "CommandLineArgumentType",
     "CommandLineArguments",
-    "CommandLineSecret",
     "CustomCommandLineArgument",
     "GCSFileIO",
     "SafeTextIO",
+    "SecretLocations",
     "SecretManager",
     "configure_logger",
     "setup_default_stdio",
