@@ -398,10 +398,34 @@ class CommandLineArguments:
             )
 
         if self.__identifying_tags.value is not None:
-            parser.add_argument("--dag_id", type=str, required=self.__identifying_tags.value, help="The DAG ID")
-            parser.add_argument("--run_id", type=str, required=self.__identifying_tags.value, help="The run ID")
-            parser.add_argument("--namespace", type=str, required=self.__identifying_tags.value, help="The namespace")
-            parser.add_argument("--pod_name", type=str, required=self.__identifying_tags.value, help="The pod name")
+            parser.add_argument(
+                "--dag_id",
+                type=str,
+                required=self.__identifying_tags.value,
+                default=os.getenv("DAG_ID", ""),
+                help="The DAG ID",
+            )
+            parser.add_argument(
+                "--run_id",
+                type=str,
+                required=self.__identifying_tags.value,
+                default=os.getenv("RUN_ID", ""),
+                help="The run ID",
+            )
+            parser.add_argument(
+                "--namespace",
+                type=str,
+                required=self.__identifying_tags.value,
+                default=os.getenv("NAMESPACE", ""),
+                help="The namespace",
+            )
+            parser.add_argument(
+                "--pod_name",
+                type=str,
+                required=self.__identifying_tags.value,
+                default=os.getenv("POD_NAME", ""),
+                help="The pod name",
+            )
 
     def __str__(self) -> str:
         """Print the string value of the argparse args."""
