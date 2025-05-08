@@ -27,6 +27,8 @@ import os
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
+from typing_extensions import Self
+
 from . import __version__
 from .secrets_manager import SecretManager
 
@@ -181,6 +183,21 @@ class CommandLineArguments:
     the relevant command line arguments using Python's argparse.
     Includes helper functions for using the command line inputs.
     """
+
+    # Singleton instance
+    instance: Self | None = None
+
+    def __new__(cls, *_args: ..., **_kwargs: ...) -> Self:
+        """Create a new instance of CommandLineArguments or return the existing one.
+
+        Implements the singleton pattern to ensure only one instance exists.
+
+        Returns:
+            CommandLineArguments: The singleton instance
+        """
+        if cls.instance is None:
+            cls.instance = super().__new__(cls)
+        return cls.instance
 
     def __init__(
         self,
@@ -352,9 +369,9 @@ class CommandLineArguments:
                 "--secret_locations",
                 type=json.loads,
                 required=self.__secret_locations.value,
-                default=SecretManager.DEFAULT_SECRET_LOCATIONS,
+                default=SecretManager.get_all_secret_paths(),
                 help="Dictionary of the locations of secrets injected by Vault. Default: '"
-                + str(SecretManager.DEFAULT_SECRET_LOCATIONS)
+                + str(SecretManager.get_all_secret_paths())
                 + "'.",
             )
 

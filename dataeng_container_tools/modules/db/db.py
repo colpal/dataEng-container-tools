@@ -197,32 +197,3 @@ class DB(BaseModule):
 
         # Store the task entry
         self.put_snapshot_task_entry(client, task_entry, params)
-
-    @classmethod
-    def from_command_line_args(cls, args: CommandLineArguments, task_kind: str) -> DB:
-        """Create a DB instance from command line arguments.
-
-        Args:
-            args: The parsed command line arguments object with get_secret_locations method.
-            task_kind: The kind of task entries this instance will handle.
-
-        Returns:
-            An initialized DB module instance.
-        """
-        try:
-            # Try to get the secret locations from command line arguments
-            secret_locations = args.get_secret_locations()
-            if secret_locations and hasattr(secret_locations, cls.MODULE_NAME):
-                secret_path = getattr(secret_locations, cls.MODULE_NAME)
-                if isinstance(secret_path, str):
-                    gcp_secret_location = secret_path
-                elif isinstance(secret_path, dict):
-                    gcp_secret_location = secret_path[cls.MODULE_NAME]
-        except (AttributeError, TypeError):
-            # Fall back to module's defaults if command line args don't work
-            pass
-
-        return cls(
-            task_kind=task_kind,
-            gcp_secret_location=gcp_secret_location or None,
-        )
