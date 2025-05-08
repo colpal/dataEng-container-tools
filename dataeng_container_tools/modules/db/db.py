@@ -18,7 +18,6 @@ Typical usage example:
 from __future__ import annotations
 
 import datetime
-import json
 import logging
 import os
 from operator import itemgetter
@@ -26,12 +25,10 @@ from typing import TYPE_CHECKING, Any, ClassVar
 
 from google.cloud import datastore
 
-from dataeng_container_tools.modules import BaseModule
+from dataeng_container_tools.modules import BaseModule, BaseModuleUtilities
 
 if TYPE_CHECKING:
     from pathlib import Path
-
-    from dataeng_container_tools import CommandLineArguments
 
 logger = logging.getLogger("Container Tools")
 
@@ -56,6 +53,9 @@ class DB(BaseModule):
         self,
         task_kind: str,
         gcp_secret_location: str | Path | None = None,
+        *,
+        use_cla_fallback: bool = True,
+        use_file_fallback: bool = True,
     ) -> None:
         """Initialize the DB module.
 
@@ -63,23 +63,23 @@ class DB(BaseModule):
             task_kind: The kind of task entries this instance will handle.
             gcp_secret_location: The location of the secret file
                 associated with Datastore.
+            use_cla_fallback (bool): If True, attempts to use command-line arguments
+                as a fallback source for secrets when the primary source fails.
+            use_file_fallback (bool): If True, attempts to use the default secret file
+                as a fallback source when both primary and command-line sources fail.
         """
-        override_secret_paths = {self.MODULE_NAME: gcp_secret_location} if gcp_secret_location else None
-        super().__init__(override_secret_paths=override_secret_paths, local=False)
-
         self.current_task_kind = task_kind
 
-        # Get the secret path for Datastore
-        secret_path = self.secret_paths[self.MODULE_NAME]
-        if not secret_path.exists():
-            msg = f"Datastore credentials not found at {secret_path!s}"
+        gcp_credentials = BaseModuleUtilities.parse_secret_with_fallback(
+            gcp_secret_location,
+            self.MODULE_NAME if use_cla_fallback else None,
+            self.DEFAULT_SECRET_PATHS[self.MODULE_NAME] if use_file_fallback else None,
+        )
+        if not gcp_credentials:
+            msg = "Datastore credentials not found"
             raise FileNotFoundError(msg)
 
-        # Load credentials and create client
-        credentials = json.loads(secret_path.read_text())
-
-        self.client = datastore.Client.from_service_account_info(credentials)
-        logger.info("Datastore client initialized successfully")
+        self.client = datastore.Client.from_service_account_info(gcp_credentials)
 
     def get_task_entry(
         self,

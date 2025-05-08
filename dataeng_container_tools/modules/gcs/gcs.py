@@ -25,7 +25,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Final, cast
 import pandas as pd
 from google.cloud import storage
 
-from dataeng_container_tools.modules import BaseModule
+from dataeng_container_tools.modules import BaseModule, BaseModuleUtilities
 
 if TYPE_CHECKING:
     from google.cloud.storage.blob import Blob
@@ -41,7 +41,6 @@ class GCSFileIO(BaseModule):
 
     Attributes:
         gcs_client: The GCS Client
-        gcs_secret_location: The location of the secret file
             associated with the the GCS upload or download location.
         local: A boolean flag indicating whether or not the library
             is running in local only mode and should not attempt to
@@ -53,26 +52,40 @@ class GCSFileIO(BaseModule):
 
     KNOWN_EXTENSIONS: Final = {".parquet", ".csv", ".pkl", ".xlsx", ".json"}
 
-    def __init__(self, gcs_secret_location: str | Path | None = None, *, local: bool = False) -> None:
+    def __init__(
+        self,
+        gcs_secret_location: str | Path | None = None,
+        *,
+        local: bool = False,
+        use_cla_fallback: bool = True,
+        use_file_fallback: bool = True,
+    ) -> None:
         """Initializes gcs_file_io with desired configuration.
 
         Args:
-            gcs_secret_location: The location of the secret file needed for GCS.
-            local: Optional. Defaults to False. If True, no contact will be made with GCS.
+            gcs_secret_location (str | Path | None): The location of the secret file needed for GCS.
+            local (bool): If True, no contact will be made with GCS.
+            use_cla_fallback (bool): If True, attempts to use command-line arguments
+                as a fallback source for secrets when the primary source fails.
+            use_file_fallback (bool): If True, attempts to use the default secret file
+                as a fallback source when both primary and command-line sources fail.
         """
-        override_secret_paths = {self.MODULE_NAME: gcs_secret_location} if gcs_secret_location else None
-        super().__init__(override_secret_paths=override_secret_paths, local=local)
-        self.gcs_secret_location = self.secret_paths[self.MODULE_NAME]
+        self.local = local
 
         if not self.local:
-            if not self.gcs_secret_location.exists():
-                msg = f"GCS credentials not found at {self.gcs_secret_location!s}"
+            gcs_sa = BaseModuleUtilities.parse_secret_with_fallback(
+                gcs_secret_location,
+                self.MODULE_NAME if use_cla_fallback else None,
+                self.DEFAULT_SECRET_PATHS[self.MODULE_NAME] if use_file_fallback else None,
+            )
+
+            if not gcs_sa:
+                msg = "GCS credentials not found"
                 raise FileNotFoundError(msg)
 
-            gcs_sa = json.loads(self.gcs_secret_location.read_text())
             self.client: storage.Client = storage.Client.from_service_account_info(gcs_sa)
         else:
-            self.client: storage.Client = storage.Client()
+            self.client: storage.Client = storage.Client()  # For typing, unused
 
     @staticmethod
     def __get_parts(gcs_uri: str) -> tuple[str, str]:

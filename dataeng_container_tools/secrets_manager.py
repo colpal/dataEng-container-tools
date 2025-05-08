@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any, ClassVar, Final, final
+from typing import Any, ClassVar, Final, cast, final
 
 from .safe_textio import SafeTextIO
 
@@ -74,7 +74,7 @@ class SecretManager:
         return cls._all_secret_paths
 
     @staticmethod
-    def parse_secret(file_path: Path) -> str | dict:
+    def parse_secret(file: str | Path) -> str | dict | None:
         """Parses the content of a secret file and returns it as a string or a dictionary.
 
         This method reads the content of the file specified by the given file path.
@@ -82,7 +82,7 @@ class SecretManager:
         Otherwise, the content is returned as a stripped string.
 
         Args:
-            file_path (Path): The path to the secret file to be parsed.
+            file (str | Path | None): The path to the secret file to be parsed.
 
             str | dict: The content of the file as a dictionary if it is a valid JSON object,
             otherwise as a stripped string.
@@ -91,12 +91,20 @@ class SecretManager:
             json.JSONDecodeError: If the content is not a properly formatted JSON object
             and an attempt to parse it as JSON is made.
         """
-        content = Path(file_path).read_text().strip()
+        file_path = Path(file)
+        if not file_path.exists():
+            return None
+
+        try:
+            content = file_path.read_text().strip()
+        except OSError:
+            logger.exception("File %s cannot be read.", file_path.as_posix())
+
         try:
             if content.startswith("{") and content.endswith("}"):
                 return json.loads(content)  # JSON objects are always considered dicts according to JSONDecoder class
         except json.JSONDecodeError:
-            logger.exception("%s is not a properly formatted file.", file_path.as_posix())
+            logger.exception("File %s is not a properly formatted JSON file.", file_path.as_posix())
         return content
 
     @classmethod
@@ -112,7 +120,7 @@ class SecretManager:
         files = [file_path for file_path in folder_path.glob("**/*") if file_path.is_file()]
         logger.info("Found these secret files: %s", [file.as_posix() for file in files])
         for file in files:
-            cls.secrets[file.absolute().as_posix()] = cls.parse_secret(file)
+            cls.secrets[file.absolute().as_posix()] = cast("str | dict", cls.parse_secret(file))
             cls.files.append(file)
         cls.update_bad_words()
 

@@ -22,10 +22,9 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import Any, ClassVar
 
-if TYPE_CHECKING:
-    from dataeng_container_tools import CommandLineArguments
+from dataeng_container_tools.secrets_manager import SecretLocations, SecretManager
 
 logger = logging.getLogger("Container Tools")
 
@@ -45,9 +44,6 @@ class ModuleRegistryMeta(type):
         super().__init__(name, bases, namespace)
         # Only register subclasses
         if name != "BaseModule" and hasattr(cls, "MODULE_NAME") and hasattr(cls, "DEFAULT_SECRET_PATHS"):
-            # Import here to avoid circular imports
-            from dataeng_container_tools.secrets_manager import SecretManager
-
             SecretManager.register_module(cls)
             logger.debug("Auto-registered module %s with SecretManager", getattr(cls, "MODULE_NAME", "Unknown"))
 
@@ -73,34 +69,9 @@ class BaseModule(metaclass=ModuleRegistryMeta):
     MODULE_NAME: ClassVar[str] = "BASE"
     DEFAULT_SECRET_PATHS: ClassVar[dict[str, str]] = {}
 
-    def __init__(
-        self,
-        override_secret_paths: dict[str, str | Path] | None = None,
-        *,
-        local: bool = False,
-    ) -> None:
-        """Initialize the base module.
-
-        Args:
-            override_secret_paths: Dictionary of secret file paths to override the defaults.
-                Keys should match those defined in the class's DEFAULT_SECRET_PATHS.
-                Values are file paths to the secrets.
-                If None, uses the class's DEFAULT_SECRET_PATHS.
-            local: If True, operates in local-only mode without connecting to external services.
-
-        """
-        self.local = local
+    def __init__(self) -> None:
+        """Initialize the base module."""
         self.client: object = None
-
-        # Initialize with default secret paths
-        self.secret_paths = {}
-        if self.DEFAULT_SECRET_PATHS:
-            self.secret_paths = {k: Path(v) for k, v in self.DEFAULT_SECRET_PATHS.items()}
-
-        # Update with any provided secret paths - allow overriding existing paths
-        if override_secret_paths:
-            for key, path in override_secret_paths.items():
-                self.secret_paths[key] = Path(path)
 
     def get_client(self) -> ...:
         """Get the client instance for this module.
@@ -121,8 +92,6 @@ class BaseModule(metaclass=ModuleRegistryMeta):
         """
         return {
             "module_name": self.MODULE_NAME,
-            "local_mode": self.local,
-            "secret_paths": {k: str(v) for k, v in self.secret_paths.items()} if self.secret_paths else {},
         }
 
     def __str__(self) -> str:
@@ -143,3 +112,51 @@ class BaseModule(metaclass=ModuleRegistryMeta):
 
         """
         return {k: Path(v) for k, v in cls.DEFAULT_SECRET_PATHS.items()}
+
+
+class BaseModuleUtilities:
+    """Utility class providing helper methods for BaseModule and its subclasses.
+
+    This class contains static utility methods that assist with common operations
+    across different module implementations, such as secret management with fallback
+    mechanisms.
+    """
+
+    @staticmethod
+    def parse_secret_with_fallback(
+        secret_location: str | Path | None = None,
+        fallback_secret_key: str | None = None,
+        fallback_secret_file: str | Path | None = None,
+    ) -> str | dict | None:
+        """Attempts to parse a secret with multiple fallback options if the primary source fails.
+
+        Tries to parse a secret from the provided location. If that fails, it will
+        attempt to use fallback mechanisms in the following order:
+        1. Command-line argument lookup
+        2. File-based lookup
+
+        Args:
+            secret_location: Primary location to look for the secret (file path or key)
+            fallback_secret_key: Key to use when looking up the secret in SecretLocations
+                when the primary lookup fails
+            fallback_secret_file: File path to use as final fallback if other methods fail
+
+        Returns:
+            The secret content if found through any method, otherwise None.
+            Content may be a string or dictionary depending on the secret format.
+        """
+        secret_content = None
+
+        # Main location
+        if secret_location:
+            secret_content = SecretManager.parse_secret(secret_location)
+
+        # CLA fallback
+        if not secret_content and fallback_secret_key:
+            secret_content = SecretManager.parse_secret(SecretLocations()[fallback_secret_key])
+
+        # File fallback
+        if not secret_content and fallback_secret_file:
+            secret_content = SecretManager.parse_secret(fallback_secret_file)
+
+        return secret_content
