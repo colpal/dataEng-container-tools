@@ -24,6 +24,7 @@ warnings.warn(
     stacklevel=2,
 )
 
+
 # Virtual Modules
 class VirtualModule(types.ModuleType):
     """A virtual module that redirects imports to their new locations."""
@@ -63,16 +64,33 @@ class VirtualModule(types.ModuleType):
         raise ImportError(msg)
 
 
+# Handle removed module with informative error
+class UnsupportedModule(types.ModuleType):
+    """Module that raises an error when any attribute is accessed."""
+
+    def __init__(self, name, message):
+        """Pass a warning message."""
+        super().__init__(name)
+        self.__message = message
+
+    def __getattr__(self, name):
+        """Raise an error when any attribute is accessed."""
+        raise ImportError(self.__message)
+
+
 # Deprecation - cla.py
 # Define the mappings
 command_line_arguments = cla.CommandLineArguments
 
 custom_command_line_argument = cla.CustomCommandLineArgument
 command_line_argument_type = cla.CommandLineArgumentType
-command_line_secret = cla.SecretLocations
+command_line_secret = secrets_manager.SecretLocations
 
 # command_line_arguments.get_secrets was moved to SecretManager.secrets
 command_line_arguments.get_secrets = lambda: secrets_manager.SecretManager.secrets  # type: ignore  # noqa: PGH003
+
+# command_line_arguments.get_secret_locations was changed to SecretLocations
+command_line_arguments.get_secret_locations = secrets_manager.SecretLocations # type: ignore  # noqa: PGH003
 
 cla_mappings = {
     "command_line_arguments": command_line_arguments,
@@ -133,6 +151,7 @@ class gcs_file_io(GCSFileIO):  # noqa: N801
             local=local,
         )
 
+
 gcs_mappings = {
     "gcs_file_io": gcs_file_io,
 }
@@ -179,6 +198,7 @@ class Db(DB):
             order_task_entries_params=order_task_entries_params,
         )
 
+
 db_mappings = {
     "Db": Db,
 }
@@ -189,3 +209,23 @@ db_module = VirtualModule(
     db_mappings,
 )
 sys.modules["dataEng_container_tools.db"] = db_module
+
+
+# Removed - simple_module.py
+simple_setup_module = UnsupportedModule(
+    "simple_setup",
+    "The 'dataEng_container_tools.simple_setup' module is no longer supported. "
+    "If you wish to continue using this module, downgrade the 'dataeng_container_tools' package to v0.",
+)
+
+sys.modules["dataEng_container_tools.simple_setup"] = simple_setup_module
+
+
+# Removed - simple_module.py
+bq_module = UnsupportedModule(
+    "bq",
+    "The 'dataEng_container_tools.bq' module is no longer supported. "
+    "If you wish to continue using this module, downgrade the 'dataeng_container_tools' package to v0.",
+)
+
+sys.modules["dataEng_container_tools.bq"] = bq_module
