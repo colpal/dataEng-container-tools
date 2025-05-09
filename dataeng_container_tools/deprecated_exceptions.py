@@ -1,3 +1,4 @@
+# ruff: noqa
 """
 this file contains all exceptions
 to use decorator annotate function in

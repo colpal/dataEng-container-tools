@@ -79,11 +79,10 @@ class DB(BaseModule):
             msg = "Datastore credentials not found"
             raise FileNotFoundError(msg)
 
-        self.client = datastore.Client.from_service_account_info(gcp_credentials)
+        self.client: datastore.Client = datastore.Client.from_service_account_info(gcp_credentials)
 
     def get_task_entry(
         self,
-        client: datastore.Client,
         filter_map: dict[str, Any],
         kind: str,
         order_task_entries_params: dict[str, Any] | None = None,
@@ -91,7 +90,6 @@ class DB(BaseModule):
         """Query task entries based on filter criteria.
 
         Args:
-            client: Datastore client instance.
             filter_map: Dictionary of filter criteria (key-value pairs).
             kind: The kind of entities to query.
             order_task_entries_params: Optional parameters for ordering task entries.
@@ -105,7 +103,7 @@ class DB(BaseModule):
             Exception: If ordering keys are not present in entries or other query errors.
         """
         # Create and execute query with filters
-        query = client.query(kind=kind)
+        query = self.client.query(kind=kind)
         for key, value in filter_map.items():
             query.add_filter(key, "=", value)
 
@@ -133,14 +131,12 @@ class DB(BaseModule):
 
     def put_snapshot_task_entry(
         self,
-        client: datastore.Client,
         task_entry: datastore.Entity,
         params: dict[str, Any],
     ) -> None:
         """Store or update a task entry in Datastore.
 
         Args:
-            client: Datastore client instance.
             task_entry: Entity which stores the actual instance of data.
             params: Dictionary containing parameters (key-value pairs) to store.
         """
@@ -153,18 +149,16 @@ class DB(BaseModule):
 
         # Store entity in Datastore
         logger.info("Storing task entry: %s", task_entry)
-        client.put(task_entry)
+        self.client.put(task_entry)
 
     def handle_task(
         self,
-        client: datastore.Client,
         params: dict[str, Any],
         order_task_entries_params: dict[str, Any] | None = None,
     ) -> None:
         """Check if a task instance exists and update it or create a new one.
 
         Args:
-            client: Datastore client instance.
             params: Dictionary containing parameters (key-value pairs) to store.
             order_task_entries_params: Optional parameters for ordering task entries
                 when retrieving existing entries.
@@ -181,13 +175,12 @@ class DB(BaseModule):
 
         # Check for existing entries
         existing_entries = self.get_task_entry(
-            client,
             filter_entries,
             self.current_task_kind,
             order_task_entries_params,
         )
 
-        task_key = client.key(self.current_task_kind)
+        task_key = self.client.key(self.current_task_kind)
         task_entry = datastore.Entity(key=task_key, exclude_from_indexes=("exception_details",))
         if existing_entries:
             task_entry.update(existing_entries[0])
@@ -196,4 +189,4 @@ class DB(BaseModule):
             task_entry["created_at"] = datetime.datetime.now(datetime.timezone.utc)
 
         # Store the task entry
-        self.put_snapshot_task_entry(client, task_entry, params)
+        self.put_snapshot_task_entry(task_entry, params)

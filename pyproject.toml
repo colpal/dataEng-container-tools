@@ -1,5 +1,5 @@
 [project]
-name = "dataEng-container-tools"
+name = "dataeng-container-tools"
 dynamic = ["version"]
 description = "A package containing tools for data engineering containers."
 readme = "README.md"
@@ -31,9 +31,14 @@ tracker = "https://github.com/colpal/dataEng-container-tools/issues"
 tests = ["ruff>=0.11.8"]
 
 [build-system]
-requires = ["setuptools>=42", "wheel"]
+requires = ["setuptools>=42", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+packages = ["dataeng_container_tools"]
+py-modules = ["dataEng_container_tools"]
+
+[tool.setuptools_scm]
 
 [tool.ruff]
 line-length = 120

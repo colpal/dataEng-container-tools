@@ -1,6 +1,8 @@
 """Data Engineering Container Tools."""
 
-__version__ = "1.0.0"
+from importlib.metadata import version
+
+__version__ = version("dataeng-container-tools")
 
 from .cla import (
     CommandLineArguments,

@@ -1,3 +1,4 @@
+# ruff: noqa: ANN001, ANN201, ANN204, FBT002, N803, ARG002
 """Package dataEng_container_tools to dataeng_container_tools redirector.
 
 The old package namespace is 'dataEng_container_tools' and uses many old
@@ -9,14 +10,15 @@ This module-level script serves to get around that.
 import sys
 import types
 import warnings
-from collections.abc import Iterable
 from typing import Any
 
-from dataeng_container_tools import cla, safe_textio, secrets_manager
+from dataeng_container_tools import cla, deprecated_exceptions, safe_textio, secrets_manager
+from dataeng_container_tools.modules.db import DB
+from dataeng_container_tools.modules.gcs import GCSFileIO
 
 warnings.warn(
-    "The 'dataEng_container_tools' module is deprecated. Use 'dataeng_container_tools' instead."
-    "If you wish to continue using the old package, please pin the library version to some v0 version"
+    "The 'dataEng_container_tools' module is deprecated. Use 'dataeng_container_tools' instead. "
+    "If you wish to continue using the old package, please pin the library version to some v0 version "
     "(latest v0 is v0.6.4)",
     DeprecationWarning,
     stacklevel=2,
@@ -26,7 +28,7 @@ warnings.warn(
 class VirtualModule(types.ModuleType):
     """A virtual module that redirects imports to their new locations."""
 
-    def __init__(self, name: str, mappings: dict[str, Any], *, is_package: bool=False) -> None:
+    def __init__(self, name, mappings, is_package=False):
         """Initialize the virtual module.
 
         Args:
@@ -67,7 +69,7 @@ command_line_arguments = cla.CommandLineArguments
 
 custom_command_line_argument = cla.CustomCommandLineArgument
 command_line_argument_type = cla.CommandLineArgumentType
-command_line_secret = cla.CommandLineSecret
+command_line_secret = cla.SecretLocations
 
 # command_line_arguments.get_secrets was moved to SecretManager.secrets
 command_line_arguments.get_secrets = lambda: secrets_manager.SecretManager.secrets  # type: ignore  # noqa: PGH003
@@ -92,7 +94,7 @@ sys.modules["dataEng_container_tools.cla"] = cla_module
 class safe_stdout(safe_textio.SafeTextIO):  # noqa: N801
     """Deprecated wrapper for SafeTextIO class."""
 
-    def __init__(self, bad_words: Iterable) -> None:
+    def __init__(self, bad_words):
         """Pass to SafeTextIO class."""
         if bad_words is None:
             bad_words = []
@@ -114,3 +116,76 @@ safe_stdout_module = VirtualModule(
     safe_stdout_mappings,
 )
 sys.modules["dataEng_container_tools.safe_stdout"] = safe_stdout_module
+
+
+# Deprecation - exceptions.py
+sys.modules["dataEng_container_tools.exceptions"] = deprecated_exceptions
+
+
+# Deprecation - gcs.py
+class gcs_file_io(GCSFileIO):  # noqa: N801
+    """Deprecated wrapper for GCSFileIO class."""
+
+    def __init__(self, gcs_secret_location, local=False):
+        """Pass to GCSFileIO class."""
+        super().__init__(
+            gcs_secret_location=gcs_secret_location,
+            local=local,
+        )
+
+gcs_mappings = {
+    "gcs_file_io": gcs_file_io,
+}
+
+# Register the module
+gcs_module = VirtualModule(
+    "gcs",
+    gcs_mappings,
+)
+sys.modules["dataEng_container_tools.gcs"] = gcs_module
+
+
+# Deprecation - db.py
+class Db(DB):
+    """Deprecated wrapper for DB class."""
+
+    def __init__(self, task_kind):
+        """Pass to DB class."""
+        self.task_kind = task_kind
+
+    def get_data_store_client(self, PATH):
+        """Pass to DB class."""
+        super().__init__(task_kind=self.task_kind, gcp_secret_location=PATH)
+
+    def get_task_entry(self, client, filter_map, kind, order_task_entries_params=None):
+        """Wrapper for the updated `get_task_entry` method without requiring `client`."""
+        return super().get_task_entry(
+            filter_map=filter_map,
+            kind=kind,
+            order_task_entries_params=order_task_entries_params,
+        )
+
+    def put_snapshot_task_entry(self, client, task_entry, params):
+        """Pass to DB class."""
+        return super().put_snapshot_task_entry(
+            task_entry=task_entry,
+            params=params,
+        )
+
+    def handle_task(self, client, params, order_task_entries_params=None):
+        """Pass to DB class."""
+        return super().handle_task(
+            params=params,
+            order_task_entries_params=order_task_entries_params,
+        )
+
+db_mappings = {
+    "Db": Db,
+}
+
+# Register the module
+db_module = VirtualModule(
+    "db",
+    db_mappings,
+)
+sys.modules["dataEng_container_tools.db"] = db_module
