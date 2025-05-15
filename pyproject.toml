@@ -15,7 +15,7 @@ dependencies = [
     "psutil",
 ]
 requires-python = ">=3.9"
-license = "MIT License"
+license = { text = "MIT License" } # Kept as legacy table for onw
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
