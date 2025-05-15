@@ -7,24 +7,20 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/$PROJECT_ID/doc-builder']
     
-  # Run the container to build documentation
+  # Deploy to Cloud Run to serve documentation
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        gcloud run jobs create doc-builder-job \
+        gcloud run deploy docs-service \
           --image gcr.io/$PROJECT_ID/doc-builder \
-          --memory 2Gi \
-          --task-timeout 15m \
-          --set-env-vars="CLOUD_RUN=1,GCS_BUCKET=$PROJECT_ID-docs" \
-          --command="python" \
-          --args="docs/build_docs.py,--cloud" \
-          --update-env-vars=PYTHONUNBUFFERED=1 \
+          --platform managed \
+          --memory 1Gi \
+          --port 8080 \
+          --allow-unauthenticated \
           --region us-central1 \
-          || echo "Job already exists, executing existing job..."
-        
-        gcloud run jobs execute doc-builder-job --region us-central1 --wait
+          --timeout 300s
 
 images:
   - 'gcr.io/$PROJECT_ID/doc-builder'
