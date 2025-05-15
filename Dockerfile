@@ -21,6 +21,7 @@ WORKDIR /app
 
 # Copy the entire repository content first
 COPY . .
+RUN rm -f setup.py
 
 # Install the package with docs dependencies
 RUN pip install --no-cache-dir -e ".[docs]"
