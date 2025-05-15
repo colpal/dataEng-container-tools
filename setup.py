@@ -1,31 +1,32 @@
-# python3 -m build
+"""Setup script for the data engineering container tools.
+
+Ensures that only pinned release tags are used for installation.
+"""
+
+import subprocess
+import sys
+
 import setuptools
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
 
-setuptools.setup(
-    name="dataEng-container-tools",
-    version="0.6.4",
-    maintainer="CP DE Team",
-    maintainer_email="git_data_science_engineering@colpal.com",
-    description="A package containing tools for data engineering containers.",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    url="https://github.com/colpal/dataEng-container-tools",
-    packages=setuptools.find_packages(),
-    install_requires=[
-        'pandas',
-        'google-cloud-storage',
-        'google-cloud-bigquery',
-        'google-cloud-datastore',
-        'openpyxl',
-        'pyarrow'
-    ],
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-    ],
-    python_requires='>=3.6',
-)
+def get_current_branch() -> str:
+    """Get the current git branch name."""
+    try:
+        cmd = ["git", "rev-parse", "--abbrev-ref", "HEAD"]
+        output = subprocess.check_output(cmd).strip()  # noqa: S603
+        return output.decode("utf-8")
+    except subprocess.SubprocessError:  # No git or git repo
+        return ""
+
+
+def check_branch() -> None:
+    """Disallow master, develop, or feature branches."""
+    branch_name = get_current_branch()
+    if branch_name not in ["HEAD"] or not branch_name.startswith("test/"):
+        sys.exit(f"Installation from {branch_name} branch is not allowed. Please use a pinned release tag instead.")
+
+
+check_branch()
+
+if __name__ == "__main__":
+    setuptools.setup()

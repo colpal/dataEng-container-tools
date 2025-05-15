@@ -1,0 +1,29 @@
+# Python
+__pycache__
+.venv
+
+# Python Build
+*.pyc
+build
+dist
+*.egg-info/
+
+# macOS generated files
+.DS_Store
+
+# Emacs temporary files
+*~
+
+# VIM temporary files
+*.swp
+
+# Visual Studio Code
+.vs/
+.vscode/
+
+# Idea
+.idea/
+
+# Other
+.ruff_cache
+uv.lock

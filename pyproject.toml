@@ -1,0 +1,63 @@
+[project]
+name = "dataeng-container-tools"
+dynamic = ["version"]
+description = "A package containing tools for data engineering containers."
+readme = "README.md"
+maintainers = [
+    { name = "CP DE Team", email = "git_data_science_engineering@colpal.com" },
+]
+dependencies = [
+    "pandas",
+    "google-cloud-storage",
+    "google-cloud-datastore",
+    "openpyxl",
+    "pyarrow",
+    "psutil",
+]
+requires-python = ">=3.9"
+license = { text = "MIT License" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+homepage = "https://github.com/colpal/dataEng-container-tools"
+download = "https://github.com/colpal/dataEng-container-tools/releases"
+tracker = "https://github.com/colpal/dataEng-container-tools/issues"
+
+[project.optional-dependencies]
+tests = ["ruff>=0.11.8"]
+
+[build-system]
+requires = ["setuptools>=42", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["dataeng_container_tools"]
+py-modules = ["dataEng_container_tools"]
+
+[tool.setuptools_scm]
+
+[tool.ruff]
+line-length = 120
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["ALL"]
+exclude = [".git", ".vscode", ".venv", "__pycache__", ".eggs", "build", "dist"]
+# Disable `typing_extensions` imports. Causes issues in Python 3.9
+typing-extensions = false
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.pylint]
+max-args = 15
+max-branches = 20
+max-statements = 75
+max-returns = 15
+
+[tool.ruff.lint.mccabe]
+max-complexity = 20
