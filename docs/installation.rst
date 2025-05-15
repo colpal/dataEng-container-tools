@@ -30,11 +30,11 @@ For development, you can install the package in editable mode with additional de
 .. code-block:: bash
 
     # Clone the repository
-    git clone https://github.com/colpal/dataEng-container-tools.git
-    cd dataEng-container-tools
+    git clone https://github.com/colpal/dataeng-container-tools.git
+    cd dataeng-container-tools
     
     # Install in editable mode with development dependencies
-    pip install -e ".[tests,docs]"
+    pip install -e ".[dev,docs]"
 
 Install Specific Version
 -----------------------

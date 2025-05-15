@@ -1,18 +1,12 @@
 """Sphinx configuration for DE Container Tools documentation."""
 
-import os
-import sys
-from datetime import date
+import datetime
 
-# Add the project root to the path so we can import the package
-sys.path.insert(0, os.path.abspath("../.."))
-
-# Import package to get version info
 import dataeng_container_tools
 
 # Project information
 project = "DE Container Tools"
-copyright = f"{date.today().year}, Colgate-Palmolive"
+copyright = f"{datetime.datetime.now(tz=datetime.timezone.utc).year}, Colgate-Palmolive"  # noqa: A001
 author = "CP DE Team"
 version = dataeng_container_tools.__version__
 release = version
@@ -29,32 +23,23 @@ extensions = [
     "sphinx_copybutton",
 ]
 
-# Confluence extension - only add if we're building for confluence
-if os.environ.get("SPHINX_BUILDER") == "confluence":
-    extensions.append("sphinxcontrib.confluencebuilder")
-    confluence_publish = True
-    confluence_space_name = os.environ.get("CONFLUENCE_SPACE", "DE")
-    confluence_parent_page = os.environ.get("CONFLUENCE_PARENT", "Data Engineering Tools")
-    confluence_server_url = os.environ.get("CONFLUENCE_URL", "https://your-confluence-url.atlassian.net/wiki")
-    confluence_server_user = os.environ.get("CONFLUENCE_USER")
-    confluence_server_pass = os.environ.get("CONFLUENCE_API_KEY")
-    confluence_page_hierarchy = True
-    confluence_publish_timeout = 30
-
 templates_path = ["_templates"]
 exclude_patterns = []
 source_suffix = [".rst", ".md"]
 master_doc = "index"
 
 # HTML output configuration
-html_theme = "sphinx_rtd_theme"
+html_theme = "sphinx_book_theme"
 html_static_path = ["_static"]
 html_title = f"DE Container Tools {version}"
-html_logo = None  # Add path to logo if you have one
+html_logo = "_static/logo-light.svg"
+html_favicon = "_static/favicon.ico"
 html_theme_options = {
     "navigation_depth": 4,
-    "titles_only": False,
-    "logo_only": True,
+
+    "logo": {
+        "image_dark": "_static/logo-dark.svg",
+    },
 }
 
 # Extension configuration

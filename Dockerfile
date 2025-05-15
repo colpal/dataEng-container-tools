@@ -1,14 +1,15 @@
-FROM python:3.9-slim
+FROM ghcr.io/astral-sh/uv:0.7.4-python3.11-bookworm
 
 # Install system dependencies and Nginx
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    make \
-    curl \
-    gnupg \
-    git \
-    nginx \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        make \
+        curl \
+        gnupg \
+        git \
+        nginx && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
@@ -17,19 +18,16 @@ WORKDIR /app
 COPY . .
 RUN rm -f setup.py
 
-# Install the package with docs dependencies
-RUN pip install --no-cache-dir -e ".[docs]"
+# Env variables
+ENV UV_NO_CACHE 1
+ENV UV_SYSTEM_PYTHON=true
 
-# Set environment variables
-ENV CONTAINER_ENV=1
-
-# Build HTML docs
-RUN python docs/build_docs.py --html
-
-# Set up Nginx to serve documentation
-RUN mkdir -p /usr/share/nginx/html
-COPY default.conf /etc/nginx/conf.d/default.conf
-RUN cp -r docs/build/html/* /usr/share/nginx/html/
+# Install the package with docs dependencies, build HTML docs, and set up Nginx
+RUN uv pip install --no-cache-dir -e '.[docs]' && \
+    python docs/make.py --html && \
+    mkdir -p /usr/share/nginx/html && \
+    cp -r docs/build/html/* /usr/share/nginx/html/ && \
+    cp default.conf /etc/nginx/conf.d/default.conf
 
 # Expose port 8080 for Cloud Run
 EXPOSE 8080
@@ -38,5 +36,5 @@ EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
 
 # For local development:
-# docker build -t doc-builder .
-# docker run --rm -p 8080:8080 doc-builder
+# docker build -t dataeng-container-tools-doc .
+# docker run --rm -p 8080:8080 dataeng-container-tools-doc
