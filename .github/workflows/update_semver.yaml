@@ -7,7 +7,7 @@ on:
       - 'v*.*.*'
 jobs:
   update-semver:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, org]
     permissions:
       contents: write
     steps:
