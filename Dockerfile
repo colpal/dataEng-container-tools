@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     make \
     curl \
     gnupg \
+    git \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -18,8 +19,11 @@ RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.c
 # Set working directory
 WORKDIR /app
 
+# Create a version file to use instead of Git
+RUN echo '0.0.0' > .version
+
 # Copy pyproject.toml first for dependency caching
-COPY pyproject.toml README.md ./
+COPY pyproject.toml README.md setup.py ./
 
 # Install the package with docs dependencies
 RUN pip install --no-cache-dir -e ".[docs]"

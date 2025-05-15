@@ -49,6 +49,7 @@ packages = ["dataeng_container_tools"]
 py-modules = ["dataEng_container_tools"]
 
 [tool.setuptools_scm]
+fallback_version = "0.0.0"
 
 [tool.ruff]
 line-length = 120
