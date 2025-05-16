@@ -2,7 +2,7 @@ Installation
 ============
 
 Requirements
------------
+------------
 
 DE Container Tools requires Python 3.9 or higher. The package has the following dependencies:
 
@@ -14,7 +14,7 @@ DE Container Tools requires Python 3.9 or higher. The package has the following 
 * psutil
 
 Installing from PyPI
--------------------
+--------------------
 
 The recommended way to install DE Container Tools is via pip:
 
@@ -23,7 +23,7 @@ The recommended way to install DE Container Tools is via pip:
     pip install dataeng-container-tools
 
 Installing for Development
-------------------------
+--------------------------
 
 For development, you can install the package in editable mode with additional dependencies:
 
@@ -37,7 +37,7 @@ For development, you can install the package in editable mode with additional de
     pip install -e ".[dev,docs]"
 
 Install Specific Version
------------------------
+------------------------
 
 To install a specific version of the package:
 
@@ -46,7 +46,7 @@ To install a specific version of the package:
     pip install dataeng-container-tools==1.0.0
 
 Verification
------------
+------------
 
 To verify that the package has been installed correctly, you can run:
 

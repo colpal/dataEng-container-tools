@@ -33,7 +33,7 @@ The GCS module handles interactions with Google Cloud Storage, providing methods
 * Pickle files
 
 Database Operations (DB)
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 The DB module provides utilities for working with Google Cloud Datastore. It handles operations such as:
 
@@ -42,7 +42,7 @@ The DB module provides utilities for working with Google Cloud Datastore. It han
 * Handling metadata for tasks
 
 Safe Text I/O
-~~~~~~~~~~~~
+~~~~~~~~~~~~~
 
 The SafeTextIO module ensures secrets are not accidentally printed to stdout or stderr. It provides:
 
@@ -51,7 +51,7 @@ The SafeTextIO module ensures secrets are not accidentally printed to stdout or 
 * Secure logging capabilities
 
 Secret Management
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
 The SecretManager component manages secrets for all modules, providing:
 
@@ -60,6 +60,6 @@ The SecretManager component manages secrets for all modules, providing:
 * Path resolution and fallbacks for secret locations
 
 Getting Started
---------------
+---------------
 
 See the :doc:`installation` section for installation instructions and the :doc:`usage/index` section for detailed usage examples.

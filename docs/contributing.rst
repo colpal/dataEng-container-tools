@@ -1,31 +1,76 @@
 Contributing
-===========
+============
 
 We welcome contributions to the DE Container Tools project! This page describes how to set up your development environment and submit changes.
 
+Getting the Source Code
+-----------------------------
+
+1. Fork the repository on GitHub
+2. Clone your fork locally:
+
+   .. code-block:: bash
+
+       git clone https://github.com/your-username/dataeng-container-tools.git
+       cd dataeng-container-tools
+
 Development Environment Setup
----------------------------
+-----------------------------
 
-1. Clone the repository and set up a development environment:
+.. tabs::
 
-   .. code-block:: bash
+   .. tab:: Python
 
-       git clone https://github.com/colpal/dataEng-container-tools.git
-       cd dataEng-container-tools
-       python -m venv .venv
-       source .venv/bin/activate  # On Windows, use: .venv\Scripts\activate
-       pip install -e ".[tests,docs]"
+      Create and activate a virtual environment:
 
-2. Run tests to verify your setup:
+      .. code-block:: bash
 
-   .. code-block:: bash
+         # Confirm Python 3.9
+         python --version
 
-       python -m unittest discover -s tests
+         python -m venv .venv
+
+         # Mac/Linux
+         source .venv/bin/activate
+         # On Windows
+         .venv\Scripts\activate
+
+         pip install -e ".[dev,docs]"
+
+   .. tab:: UV (Recommended)
+
+      UV is a fast Python package installer and resolver. Learn more at https://docs.astral.sh/uv/
+
+      Install and use UV for environment setup:
+
+      .. code-block:: bash
+
+         # Install UV if you don't have it
+         pip install uv
+         
+         # Create and activate virtual environment
+         uv venv --python 3.9
+
+         # Mac/Linux
+         source .venv/bin/activate
+         # Windows
+         .venv\Scripts\activate
+         
+         # Install development dependencies
+         uv pip install -e ".[dev,docs]"
+
+You will also need to install the `Ruff extension <https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff>`_
+
+For writing RST Documentation, the following extensions may help:
+
+- `reStructuredText <https://marketplace.visualstudio.com/items?itemName=lextudio.restructuredtext>`_
+- `reStructuredText Syntax highlighting <https://marketplace.visualstudio.com/items?itemName=trond-snekvik.simple-rst>`_
+- `Esbonio <https://marketplace.visualstudio.com/items?itemName=swyddfa.esbonio>`_
 
 Code Style Guidelines
-------------------
+---------------------
 
-This project uses ruff for linting and code quality enforcement:
+This project uses Ruff for linting and code quality enforcement:
 
 1. Before submitting code, run ruff:
 
@@ -33,82 +78,41 @@ This project uses ruff for linting and code quality enforcement:
 
        ruff check .
 
-2. Follow these coding standards:
-   
-   - Use Google-style docstrings
+3. Follow these coding standards:
+
+   - Use `Google-style docstrings <https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html>`_
+   - Follow `Ruff rules <https://docs.astral.sh/ruff/rules/>`_
    - Keep line length to 120 characters
-   - Use type hints for all function signatures
-   - Follow PEP 8 guidelines
+   - Use type hints for all function signatures 
    - Write comprehensive unit tests for new functionality
 
 Making Changes
-------------
+--------------
 
-1. Create a new branch for your changes:
-
-   .. code-block:: bash
-
-       git checkout -b feature/your-feature-name
-
-2. Make your changes and ensure all tests pass
-3. Update documentation if needed
-4. Commit your changes with clear, descriptive commit messages
+1. Make your changes and ensure all tests pass
+2. Update documentation if needed
+3. Follow the `Conventional Commit Messages <https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13>`_
 
 Submitting Changes
----------------
+------------------
 
 1. Push your changes to your branch:
 
    .. code-block:: bash
 
-       git push origin feature/your-feature-name
+      git push origin master
 
-2. Open a Pull Request against the appropriate branch
-   - For new features or non-critical fixes, PR against `develop`
-   - Follow the MST branching model described in the GitHub workflows
-
-3. Ensure CI checks pass on your PR
-4. Wait for code review
-
-Documentation Guidelines
----------------------
-
-When adding new features or changing existing features, please update the documentation:
-
-1. Update or add docstrings to all public functions and classes
-2. For significant changes, update the relevant usage example files
-3. Add new features to the appropriate API documentation file
-4. Update the changelog with your changes
-
-When documenting code, follow this format:
-
-.. code-block:: python
-
-    def example_function(param1, param2=None):
-        """Short description of what the function does.
-        
-        Longer description with more details if needed.
-        
-        Args:
-            param1: Description of the first parameter.
-            param2: Description of the second parameter. Defaults to None.
-            
-        Returns:
-            Description of what the function returns.
-            
-        Raises:
-            ExceptionType: When and why this exception is raised.
-        """
-        # Function implementation
+2. Open a Pull Request merging from your fork to the main repository
+3. Wait for code review
 
 Building Documentation
--------------------
+----------------------
 
 To build the documentation locally:
 
 .. code-block:: bash
 
-    cd docs
-    sphinx-build -b html source build/html
+   cd docs
+   python3 make.py --html
 
-The documentation will be available in the `build/html` directory.
+The documentation will be available in the `docs/build/html` directory. Simply open `index.html` with a browser.

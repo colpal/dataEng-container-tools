@@ -1,5 +1,21 @@
 DE Container Tools Documentation
-============================
+================================
+
+Introduction
+------------
+
+DE Container Tools is a Python package containing tools for data engineering containers. The package is split into several modules that handle various aspects of container operations:
+
+* **CLA** - Command Line Arguments handling
+* **SafeTextIO** - Safe handling of stdout for secrets
+* **SecretManager** - Secret management utilities
+* **Modules**
+   * **GCS** - Google Cloud Storage interfaces
+   * **DB** - Database operations
+
+For detailed usage and examples, see the :doc:`usage/index` section.
+
+For the latest Releases/Changelog, visit the `Releases page <https://github.com/colpal/dataeng-container-tools/releases>`_.
 
 .. toctree::
    :maxdepth: 2
@@ -10,22 +26,8 @@ DE Container Tools Documentation
    usage/index
    api/index
    contributing
-   changelog
 
-Introduction
------------
-
-DE Container Tools is a Python package containing tools for data engineering containers. The package is split into several modules that handle various aspects of container operations:
-
-* **CLA** - Command Line Arguments handling
-* **GCS** - Google Cloud Storage interfaces
-* **DB** - Database operations
-* **SafeTextIO** - Safe handling of stdout for secrets
-* **SecretManager** - Secret management utilities
-
-For detailed usage and examples, see the :doc:`usage/index` section.
-
-Indices and tables
+Indices and Tables
 ==================
 
 * :ref:`genindex`
