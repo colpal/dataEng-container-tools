@@ -46,7 +46,6 @@ suppress_warnings = ["autoapi.python_import_resolution"]
 tls_verify = False
 
 autoapi_dirs = ["../dataeng_container_tools"]
-# Configure autoapi to avoid duplicates
 autoapi_options = [
     "members",
     "inherited-members",
