@@ -6,6 +6,7 @@ Python version of Makefile
 """
 
 import logging
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -13,6 +14,20 @@ from pathlib import Path
 # Configure logger
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger("Sphinx Docs Generator")
+
+
+def clean_build_dir() -> None:
+    """Remove the build directory for a clean build."""
+    docs_dir = Path(__file__).parent
+    build_dir = docs_dir / "build"
+
+    if build_dir.exists():
+        logger.info("Cleaning build directory...")
+        try:
+            shutil.rmtree(build_dir)
+            logger.info("Build directory removed successfully")
+        except Exception:
+            logger.exception("Error removing build directory")
 
 
 def build_html_docs() -> bool:
@@ -84,6 +99,9 @@ def main() -> None:
         logger.info("  --all         Generate all formats (HTML and PDF)")
         logger.info("\nExample: python build_docs.py --pdf")
         sys.exit(1)
+
+    # Clean the build directory before building
+    clean_build_dir()
 
     # Build HTML docs if requested
     html_success = None

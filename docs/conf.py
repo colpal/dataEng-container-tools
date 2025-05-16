@@ -2,23 +2,21 @@
 
 import datetime
 
-import dataeng_container_tools
+from dataeng_container_tools import __version__
 
 # Project information
 project = "DE Container Tools"
 copyright = f"{datetime.datetime.now(tz=datetime.timezone.utc).year}, Colgate-Palmolive"  # noqa: A001
 author = "CP DE Team"
-version = dataeng_container_tools.__version__
+version = __version__
 release = version
 
 # General configuration
 extensions = [
-    "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
-    "sphinx.ext.autosummary",
-    "sphinx_autodoc_typehints",
+    "autoapi.extension",
     "myst_parser",
     "sphinx_copybutton",
     "sphinx_togglebutton",
@@ -38,21 +36,32 @@ html_logo = "_static/logo-light.svg"
 html_favicon = "_static/favicon.ico"
 html_theme_options = {
     "navigation_depth": 4,
-
     "logo": {
         "image_dark": "_static/logo-dark.svg",
     },
 }
 
 # Extension configuration
-autodoc_default_options = {
-    "members": True,
-    "member-order": "bysource",
-    "special-members": "__init__",
-    "undoc-members": True,
-    "exclude-members": "__weakref__",
-    "show-inheritance": True,
-}
+suppress_warnings = ["autoapi.python_import_resolution"]
+tls_verify = False
+
+autoapi_dirs = ["../dataeng_container_tools"]
+# Configure autoapi to avoid duplicates
+autoapi_options = [
+    "members",
+    "inherited-members",
+    # "undoc-members",  # Causes issues with imports
+    "private-members",
+    "special-members",
+    "show-inheritance",
+    # "show-inheritance-diagram",
+    "show-module-summary",
+    "imported-members",
+]
+autoapi_member_order = "groupwise"
+autoapi_python_class_content = "class"
+autoapi_keep_files = False
+autoapi_add_toctree_entry = True
 
 # Napoleon settings for Google-style docstrings
 napoleon_google_docstring = True

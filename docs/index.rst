@@ -24,7 +24,6 @@ For the latest Releases/Changelog, visit the `Releases page <https://github.com/
    introduction
    installation
    usage/index
-   api/index
    contributing
 
 Indices and Tables

@@ -7,12 +7,12 @@ Overview
 The Data Engineering Container Tools package provides a comprehensive set of utilities designed to streamline container operations for data engineering tasks. This package simplifies common operations when working with containerized applications, particularly in cloud environments.
 
 Core Components
---------------
+---------------
 
 The package is organized into several core modules:
 
 Command Line Arguments (CLA)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The CLA module provides tools for retrieving and processing command line inputs in a standardized way. It includes three main classes:
 
@@ -21,7 +21,7 @@ The CLA module provides tools for retrieving and processing command line inputs 
 * ``CustomCommandLineArgument`` - A wrapper for creating custom command line arguments
 
 Google Cloud Storage (GCS)
-~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The GCS module handles interactions with Google Cloud Storage, providing methods for downloading and uploading files with various formats, including:
 
