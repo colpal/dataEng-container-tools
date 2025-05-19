@@ -55,13 +55,13 @@ class CustomCommandLineArgument:
         # str covers predefined actions ("store_true", "count", etc.)
         action: str | type[argparse.Action] = ...,
         # more precisely, Literal["?", "*", "+", "...", "A...", "==SUPPRESS=="]
-        nargs: int | str | None = None,
+        nargs: int | str | None = ..., # None,
         const: Any = ...,  # noqa: ANN401
         default: Any = ...,  # noqa: ANN401
-        data_type: argparse._ActionType = ...,
+        type: argparse._ActionType = ...,  # noqa: A002
         choices: Iterable[argparse._T] | None = ...,
         required: bool = ...,
-        help_message: str | None = ...,
+        help: str | None = ...,  # noqa: A002
         metavar: str | tuple[str, ...] | None = ...,
         dest: str | None = ...,
         version: str = ...,
@@ -79,10 +79,10 @@ class CustomCommandLineArgument:
             const (Any): A constant value required by some action and nargs selections.
             default (Any): The value produced if the argument is absent from the command line and if it is
                 absent from the namespace object.
-            data_type (argparse._ActionType): The type to which the command-line argument should be converted.
+            type (argparse._ActionType): The type to which the command-line argument should be converted.
             choices (Iterable[argparse._T] | None): A container of the allowable values for the argument.
             required (bool): Indicates whether or not the command-line option may be omitted (optionals only).
-            help_message (str | None): A brief description of what the argument does.
+            help (str | None): A brief description of what the argument does.
             metavar (str | tuple[str, ...] | None): The name for the argument in usage messages.
             dest (str | None): The name of the attribute to be added to the object returned by parse_args().
             version (str): Version of the argument.
@@ -94,10 +94,10 @@ class CustomCommandLineArgument:
         self.nargs = nargs
         self.const = const
         self.default = default
-        self.data_type = data_type
-        self.choices = choices or []
+        self.type = type
+        self.choices = choices
         self.required = required
-        self.help_message = help_message
+        self.help = help
         self.metavar = metavar
         self.dest = dest
         self.version = version
@@ -111,10 +111,10 @@ class CustomCommandLineArgument:
             f"nargs: {self.nargs}",
             f"const: {self.const}",
             f"default: {self.default}",
-            f"data_type: {self.data_type}",
+            f"type: {self.type}",
             f"choices: {self.choices}",
             f"required: {self.required}",
-            f"help_message: {self.help_message}",
+            f"help: {self.help}",
             f"metavar: {self.metavar}",
             f"dest: {self.dest}",
             f"version: {self.version}",
@@ -215,29 +215,17 @@ class CommandLineArguments:
 
         if custom_inputs:
             for item in custom_inputs:
-                if item.action:
-                    parser.add_argument(
-                        "--" + item.name,
-                        required=item.required,
-                        action=item.action,
-                        help=item.help_message,
-                    )
-                else:
-                    parser.add_argument(
-                        "--" + item.name,
-                        action=item.action,
-                        nargs=item.nargs,
-                        const=item.const,
-                        default=item.default,
-                        type=item.data_type,
-                        choices=item.choices,
-                        required=item.required,
-                        help=item.help_message,
-                        metavar=item.metavar,
-                        dest=item.dest,
-                        version=item.version,
-                        kwargs=item.kwargs,
-                    )
+                arg_name = "--" + item.name
+                arg_kwargs = {
+                    attr: getattr(item, attr)
+                    for attr in vars(item)
+                    if attr not in ("name", "kwargs") and getattr(item, attr) is not ...
+                }
+
+                if item.kwargs is not ...:  # Add any additional kwargs
+                    arg_kwargs.update(item.kwargs)
+                parser.add_argument(arg_name, **arg_kwargs)
+
         try:
             if parse_known_args:
                 self.__args, _ = parser.parse_known_args()  # Discard extra args
