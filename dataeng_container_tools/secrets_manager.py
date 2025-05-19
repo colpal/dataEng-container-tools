@@ -73,8 +73,8 @@ class SecretManager:
             cls.initialize_secret_paths()
         return cls._all_secret_paths
 
-    @staticmethod
-    def parse_secret(file: str | Path) -> str | dict | None:
+    @classmethod
+    def parse_secret(cls, file: str | Path) -> str | dict | None:
         """Parses the content of a secret file and returns it as a string or a dictionary.
 
         This method reads the content of the file specified by the given file path.
@@ -95,16 +95,24 @@ class SecretManager:
         if not file_path.exists():
             return None
 
+        # Parse secret as str text
         try:
-            content = file_path.read_text().strip()
+            content: str | dict = file_path.read_text().strip()
         except OSError:
             logger.exception("File %s cannot be read.", file_path.as_posix())
 
+        # Try optimistically parsing as JSON
         try:
             if content.startswith("{") and content.endswith("}"):
-                return json.loads(content)  # JSON objects are always considered dicts according to JSONDecoder class
+                content = json.loads(content)  # JSON objects are always considered dicts according to JSONDecoder class
         except json.JSONDecodeError:
             logger.exception("File %s is not a properly formatted JSON file.", file_path.as_posix())
+
+        # Add secrets to variables and bad words
+        cls.secrets[file_path.as_posix()] = content
+        cls.files.append(file_path)
+        cls.update_bad_words()
+
         return content
 
     @classmethod
@@ -120,9 +128,7 @@ class SecretManager:
         files = [file_path for file_path in folder_path.glob("**/*") if file_path.is_file()]
         logger.info("Found these secret files: %s", [file.as_posix() for file in files])
         for file in files:
-            cls.secrets[file.absolute().as_posix()] = cast("str | dict", cls.parse_secret(file))
-            cls.files.append(file)
-        cls.update_bad_words()
+            cls.parse_secret(file)
 
     @classmethod
     def update_bad_words(cls) -> None:
@@ -131,10 +137,6 @@ class SecretManager:
         for secret in SecretManager.secrets.values():
             these_bad_words = set(secret.values()) if isinstance(secret, dict) else {secret}
             bad_words.update(these_bad_words)
-            for word in these_bad_words:
-                bad_words.add(json.dumps(str(word)))
-                bad_words.add(json.dumps(str(word)).encode("unicode-escape").decode())
-                bad_words.add(str(word).encode("unicode-escape").decode())
         SafeTextIO.add_words(bad_words)
 
 
