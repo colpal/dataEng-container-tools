@@ -23,12 +23,12 @@ import os
 from operator import itemgetter
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from google.cloud import datastore
-
 from dataeng_container_tools.modules import BaseModule, BaseModuleUtilities
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+    from google.cloud import datastore
 
 logger = logging.getLogger("Container Tools")
 
@@ -68,6 +68,8 @@ class DB(BaseModule):
             use_file_fallback (bool): If True, attempts to use the default secret file
                 as a fallback source when both primary and command-line sources fail.
         """
+        from google.cloud import datastore
+
         self.current_task_kind = task_kind
 
         gcp_credentials = BaseModuleUtilities.parse_secret_with_fallback(
@@ -163,6 +165,8 @@ class DB(BaseModule):
             order_task_entries_params: Optional parameters for ordering task entries
                 when retrieving existing entries.
         """
+        from google.cloud import datastore
+
         # Get commit ID from environment if available
         commit_id = os.environ.get("GITHUB_SHA", "")
 

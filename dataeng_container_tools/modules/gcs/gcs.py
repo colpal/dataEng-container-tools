@@ -22,12 +22,11 @@ import pickle
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar, Final, cast
 
-import pandas as pd
-from google.cloud import storage
-
 from dataeng_container_tools.modules import BaseModule, BaseModuleUtilities
 
 if TYPE_CHECKING:
+    import pandas as pd
+    from google.cloud import storage
     from google.cloud.storage.blob import Blob
 
 
@@ -70,6 +69,8 @@ class GCSFileIO(BaseModule):
             use_file_fallback (bool): If True, attempts to use the default secret file
                 as a fallback source when both primary and command-line sources fail.
         """
+        from google.cloud import storage
+
         self.local = local
 
         if not self.local:
@@ -85,7 +86,7 @@ class GCSFileIO(BaseModule):
 
             self.client: storage.Client = storage.Client.from_service_account_info(gcs_sa)
         else:
-            self.client: storage.Client = storage.Client()  # For typing, unused
+            self.client: storage.Client = ...  # For typing, unused
 
     @staticmethod
     def __get_parts(gcs_uri: str) -> tuple[str, str]:
@@ -147,6 +148,8 @@ class GCSFileIO(BaseModule):
         Returns:
             A dataframe if the object format can be inferred, otherwise a file-like object.
         """
+        import pandas as pd
+
         pandas_kwargs = pandas_kwargs or {}
 
         # Get the file object
@@ -450,6 +453,8 @@ class GCSFileIO(BaseModule):
         Returns:
             The result from blob.upload() or file path if in local mode.
         """
+        import pandas as pd
+
         pandas_kwargs = pandas_kwargs or {}
         metadata = metadata or {}
 
@@ -575,6 +580,3 @@ class GCSFileIO(BaseModule):
             )
             for i, gcs_uri in enumerate(gcs_uris)
         ]
-
-
-GCS = GCSFileIO

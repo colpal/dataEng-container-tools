@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any, ClassVar, Final, cast, final
+from typing import Any, ClassVar, Final, final
 
 from .safe_textio import SafeTextIO
 
@@ -17,61 +17,8 @@ class SecretManager:
 
     DEFAULT_SECRET_FOLDER: Final = Path("/vault/secrets/")
 
-    # Dictionary to store registered module classes
-    _module_classes: ClassVar[dict[str, type[Any]]] = {}
-    _all_secret_paths: ClassVar[dict[str, str]] = {}
-
     files: ClassVar[list[Path]] = []
     secrets: ClassVar[dict[str, str | dict]] = {}
-
-    # States
-    _paths_initialized: ClassVar[bool] = False
-
-    @classmethod
-    def register_module(cls, module_class: type[Any]) -> None:
-        """Register a module class to collect its secret paths.
-
-        Args:
-            module_class: A BaseModule subclass with MODULE_NAME and DEFAULT_SECRET_PATHS
-        """
-        if hasattr(module_class, "MODULE_NAME") and hasattr(module_class, "DEFAULT_SECRET_PATHS"):
-            cls._module_classes[module_class.MODULE_NAME] = module_class
-            logger.debug("Registered module %s for secret management", module_class.MODULE_NAME)
-
-    @classmethod
-    def initialize_secret_paths(cls) -> None:
-        """Collect all secret paths from registered modules once.
-
-        This method collects the paths and stores them in the _all_secret_paths class variable.
-        It should be called once during application initialization.
-        """
-        if cls._paths_initialized:
-            return
-
-        all_paths = {
-            key: path
-            for module_class in cls._module_classes.values()
-            if hasattr(module_class, "DEFAULT_SECRET_PATHS")
-            for key, path in module_class.DEFAULT_SECRET_PATHS.items()
-        }
-
-        SecretLocations().update(new_secret_locations=all_paths, set_attr=True)
-
-        cls._all_secret_paths = all_paths
-        cls._paths_initialized = True
-
-        logger.debug("Secret paths initialized: %s", all_paths)
-
-    @classmethod
-    def get_module_secret_paths(cls) -> dict[str, str]:
-        """Get all collected module secret paths.
-
-        Returns:
-            A dictionary with all default secret paths from registered modules.
-        """
-        if not cls._paths_initialized:
-            cls.initialize_secret_paths()
-        return cls._all_secret_paths
 
     @classmethod
     def parse_secret(cls, file: str | Path) -> str | dict | None:
@@ -184,3 +131,24 @@ class SecretLocations(dict[str, str]):
         if set_attr:
             for key, value in new_secret_locations.items():
                 setattr(self, key, value)
+
+    @classmethod
+    def register_module(cls, module_class: type[Any]) -> None:
+        """Register a module class to collect its secret paths.
+
+        Args:
+            module_class: A BaseModule subclass with MODULE_NAME and DEFAULT_SECRET_PATHS
+        """
+        if hasattr(module_class, "MODULE_NAME") and hasattr(module_class, "DEFAULT_SECRET_PATHS"):
+            instance = cls()
+
+            # If the user also lazy or defers the loading of a module, it can override user CLA SecretLocations
+            # Ensure the key is not already initialized
+            new_paths = {
+                k: v for k, v in module_class.DEFAULT_SECRET_PATHS.items()
+                if k not in instance
+            }
+
+            instance.update(new_secret_locations=new_paths, set_attr=True)
+
+            logger.debug("Registered module %s for secret management", module_class.MODULE_NAME)

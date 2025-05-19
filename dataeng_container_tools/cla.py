@@ -28,7 +28,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, ClassVar, final
 
 from . import __version__
-from .secrets_manager import SecretLocations, SecretManager
+from .secrets_manager import SecretLocations
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -327,9 +327,9 @@ class CommandLineArguments:
                 "--secret_locations",
                 type=json.loads,
                 required=self.__secret_locations.value,
-                default=SecretManager.get_module_secret_paths(),
+                default=SecretLocations(),
                 help="Dictionary of the locations of secrets injected by Vault. Default: '"
-                + str(SecretManager.get_module_secret_paths())
+                + str(SecretLocations())
                 + "'.",
             )
 
