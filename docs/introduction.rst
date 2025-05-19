@@ -62,4 +62,4 @@ The SecretManager component manages secrets for all modules, providing:
 Getting Started
 ---------------
 
-See the :doc:`installation` section for installation instructions and the :doc:`usage/index` section for detailed usage examples.
+See the :doc:`installation` section for installation instructions and see the :doc:`example-demos/index` and :doc:`/modules/index` sections for detailed usage examples.

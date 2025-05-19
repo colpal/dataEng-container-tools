@@ -13,7 +13,7 @@ DE Container Tools is a Python package containing tools for data engineering con
    * **GCS** - Google Cloud Storage interfaces
    * **DB** - Database operations
 
-For detailed usage and examples, see the :doc:`usage/index` section.
+For detailed usage and examples, see the :doc:`example-demos/index` section and the :doc:`/modules/index` section`
 
 For the latest Releases/Changelog, visit the `Releases page <https://github.com/colpal/dataeng-container-tools/releases>`_.
 
@@ -23,8 +23,10 @@ For the latest Releases/Changelog, visit the `Releases page <https://github.com/
 
    introduction
    installation
-   usage/index
-   contributing
+   modules/index
+   example-demos/index
+   migration-guides/index
+   contributing/index
 
 Indices and Tables
 ==================

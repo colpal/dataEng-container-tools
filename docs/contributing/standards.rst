@@ -1,5 +1,5 @@
-Contributing
-============
+Standards
+=========
 
 We welcome contributions to the DE Container Tools project! This page describes how to set up your development environment and submit changes.
 
