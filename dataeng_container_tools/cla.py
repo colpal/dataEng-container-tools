@@ -55,7 +55,7 @@ class CustomCommandLineArgument:
         # str covers predefined actions ("store_true", "count", etc.)
         action: str | type[argparse.Action] = ...,
         # more precisely, Literal["?", "*", "+", "...", "A...", "==SUPPRESS=="]
-        nargs: int | str | None = ..., # None,
+        nargs: int | str | None = ...,  # None,
         const: Any = ...,  # noqa: ANN401
         default: Any = ...,  # noqa: ANN401
         type: argparse._ActionType = ...,  # noqa: A002
@@ -166,33 +166,29 @@ class CommandLineArguments:
 
     def __init__(
         self,
-        input_files: CommandLineArgumentType = CommandLineArgumentType.UNUSED,
-        output_files: CommandLineArgumentType = CommandLineArgumentType.UNUSED,
-        secret_locations: CommandLineArgumentType = CommandLineArgumentType.UNUSED,
-        default_file_type: CommandLineArgumentType = CommandLineArgumentType.UNUSED,
         custom_inputs: list[CustomCommandLineArgument] | None = None,
-        description: str | None = None,
-        input_dtypes: CommandLineArgumentType = CommandLineArgumentType.UNUSED,
-        running_local: CommandLineArgumentType = CommandLineArgumentType.UNUSED,
-        identifying_tags: CommandLineArgumentType = CommandLineArgumentType.UNUSED,
-        parser: argparse.ArgumentParser | None = None,
         *,
+        secret_locations: CommandLineArgumentType = CommandLineArgumentType.UNUSED,
+        input_files: CommandLineArgumentType = CommandLineArgumentType.UNUSED,
+        input_dtypes: CommandLineArgumentType = CommandLineArgumentType.UNUSED,
+        output_files: CommandLineArgumentType = CommandLineArgumentType.UNUSED,
+        identifying_tags: CommandLineArgumentType = CommandLineArgumentType.UNUSED,
+        description: str | None = None,
+        parser: argparse.ArgumentParser | None = None,
         parse_known_args: bool = True,
     ) -> None:
         """Initialize CommandLineArguments with desired configuration.
 
         Args:
-            input_files (CommandLineArgumentType): Determines if input files are required, optional, or unused.
-            output_files (CommandLineArgumentType): Determines if output files are required, optional, or unused.
+            custom_inputs (list[CustomCommandLineArgument] | None): List of custom command line arguments.
             secret_locations (CommandLineArgumentType): Determines if secret locations are required, optional,
                 or unused.
-            default_file_type (CommandLineArgumentType): Specifies the default file type (e.g., parquet, csv).
-            custom_inputs (list[CustomCommandLineArgument] | None): List of custom command line arguments.
-            description (str | None): Description for the command line parser.
+            input_files (CommandLineArgumentType): Determines if input files are required, optional, or unused.
             input_dtypes (CommandLineArgumentType): Determines if input data types are required, optional, or unused.
-            running_local (CommandLineArgumentType): Flag to indicate if the script is running locally.
+            output_files (CommandLineArgumentType): Determines if output files are required, optional, or unused.
             identifying_tags (CommandLineArgumentType): Determines if identifying tags are required, optional,
                 or unused.
+            description (str | None): Description for the command line parser.
             parser (argparse.ArgumentParser | None): Custom parser for command line arguments.
             parse_known_args (bool): Whether to parse known arguments only.
 
@@ -200,15 +196,13 @@ class CommandLineArguments:
         if custom_inputs is None:
             custom_inputs = []
 
-        self.__input_files = input_files
-        self.__output_files = output_files
-        self.__secret_locations = secret_locations
-        self.__default_file_type = default_file_type
         self.__custom_inputs = custom_inputs
-        self.__description = description
+        self.__secret_locations = secret_locations
+        self.__input_files = input_files
         self.__input_dtypes = input_dtypes
-        self.__running_local = running_local
+        self.__output_files = output_files
         self.__identifying_tags = identifying_tags
+        self.__description = description
         parser = parser if parser else argparse.ArgumentParser(description=description)
 
         self.__add_container_args(parser)
@@ -331,28 +325,6 @@ class CommandLineArguments:
                 help="Dictionary of the locations of secrets injected by Vault. Default: '"
                 + str(SecretLocations())
                 + "'.",
-            )
-
-        if self.__default_file_type.value is not None:
-            parser.add_argument(
-                "--default_file_type",
-                type=str,
-                required=self.__default_file_type.value,
-                choices=["parquet", "csv", "pkl", "json"],
-                default="parquet",
-                help=(
-                    "How to handle input/output files if no file extension found."
-                    "Choice of 'parquet', 'csv', 'pkl', and 'json'. Default 'parquet'."
-                ),
-            )
-
-        if self.__running_local.value is not None:
-            parser.add_argument(
-                "--running_local",
-                type=bool,
-                required=self.__running_local.value,
-                default=False,
-                help="If the container is running locally (no contact with GCP).",
             )
 
         if self.__identifying_tags.value is not None:
