@@ -47,7 +47,7 @@ The arguments can be passed through the commandline as so follows. Note that sec
         --output_paths path/to/outputs \
         --output_filenames output_file.csv
 
-The output will be:
+Output:
 
 .. code-block:: text
 
@@ -144,27 +144,31 @@ When you run this script, you can provide the custom arguments:
 
     python my_script.py --some_number 3 --some_json '{"key": "val"}' --some_list '["one", 2, "THREE"]' --batch_size 200 --verbose
 
-Preet Arguments
----------------
+.. code-block:: text
+
+    Values: some_number = 3, some_json = {'key': 'val'}, some_list = ['one', 2, 'THREE']
+    Using batch size: 200
+
+
+Preset Arguments
+----------------
 
 This section will go over each preset argument when set as not ``UNUSED``
+
+.. _command-line-secret-locations:
 
 Argument: Secret Locations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``secret_locations`` parameter adds the ``--secret_locations`` arg which accepts JSON. Secrets processed this way are automatically used by SecretManager and SecretLocations as seen here :doc:`secrets_handling`.
+The ``secret_locations`` parameter adds the ``--secret_locations`` arg which accepts JSON. Secrets processed this way are automatically used by SecretManager and SecretLocations as seen here :doc:`secrets-handling`.
 
 .. code-block:: python
 
-    from dataeng_container_tools import (
-        CommandLineArguments, 
-        CommandLineArgumentType,
-        SecretLocations
-    )
+    from dataeng_container_tools import CommandLineArguments, CommandLineArgumentType, SecretLocations
 
     # Create command line arguments parser with secret locations
     cla = CommandLineArguments(
-        secret_locations=CommandLineArgumentType.REQUIRED
+        secret_locations=CommandLineArgumentType.REQUIRED,
     )
 
     # When SecretLocations is returned as a dictionary with specified secret paths
@@ -177,15 +181,83 @@ The ``secret_locations`` parameter adds the ``--secret_locations`` arg which acc
 
     print(f"GCS Secret Path: {gcs_secret}")
     print(f"DB Secret Path: {db_secret}")
+    print(f"CUSTOM Secret Path: {custom_secret}")
 
 When using this script, you would provide the secret locations as a JSON dictionary:
 
 .. code-block:: bash
 
-    python my_script.py --secret_locations '{"GCS": "/path/to/gcs_secret.json", "DB": "/path/to/db_secret.json"}'
+    python my_script.py --secret_locations '{"GCS": "/path/to/gcs_secret.json", "DB": "/path/to/db_secret.json", "CUSTOM": "/different/path/file.json"}'
+
+Output:
+
+.. code-block:: text
+
+    GCS Secret Path: /path/to/gcs_secret.json
+    DB Secret Path: /path/to/db_secret.json
+    CUSTOM Secret Path: /different/path/file.json
+
+.. _command-line-input-output:
 
 Argument: Input Output
 ~~~~~~~~~~~~~~~~~~~~~~
 .. warning::
-   This documentation is currently under construction (TBD).
+   This section is currently under construction (TBD).
 
+Argument: Identifying Tags
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``identifying_tags`` parameter adds ``--dag_id`` (str), ``--run_id`` (str), ``--namespace`` (str), and ``--pod_name`` (str) args.
+
+The value of these args are passed to the env variables ``DAG_ID``, ``RUN_ID``, ``NAMESPACE``, and ``POD_NAME`` respectively. These will be passed to modules such as :doc:`gcs-operations` for uploading metadata.
+
+.. code-block:: python
+
+    import os
+
+    from dataeng_container_tools import CommandLineArguments, CommandLineArgumentType
+
+    # Create command line arguments parser
+    cla = CommandLineArguments(
+        identifying_tags=CommandLineArgumentType.OPTIONAL,
+    )
+
+    # Access environment variables
+    dag_id = os.getenv("DAG_ID")
+    run_id = os.getenv("RUN_ID")
+    namespace = os.getenv("NAMESPACE")
+    pod_name = os.getenv("POD_NAME")
+
+    print(f"DAG_ID: {dag_id}")
+    print(f"RUN_ID: {run_id}")
+    print(f"NAMESPACE: {namespace}")
+    print(f"POD_NAME: {pod_name}")
+
+You can then run the script providing some of the identifying tags. Since it's optional, not all tags need to be provided. For example, here we omit ``--pod_name``:
+
+.. code-block:: bash
+
+    python my_script.py --dag_id "my_example_dag" --run_id "run_20250520" --namespace "prod"
+
+Output:
+
+.. code-block:: text
+
+    DAG_ID: my_example_dag
+    RUN_ID: run_20250520
+    NAMESPACE: prod
+    POD_NAME: 
+
+Additional Parameters
+---------------------
+
+Additionally three parameters exist:
+    | ``description``
+    | ``parser``
+    | ``parse_known_args``
+
+``description`` will pass an argparse description to the parser which shows up when ``--help`` is ran. This overrides anything ``parser`` has.
+
+``parser`` allows the use of a custom base argparse ``ArgumentParser`` instead of creating a new one. This is good if there might be missing customization that this library does not cover.
+
+``parse_known_args`` determines how args will be parsed. If ``False`` then the program will throw an exception if additional args not asked for are provided. If ``True`` then the program will ignore those additional args.

@@ -26,7 +26,7 @@ Here's a basic example of using the ``SecretManager`` class:
 Secret Locations (SecretLocations)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-SecretLocations class is a singleton that gives quick access to secret string paths. By default it is initialized with some basic paths. When ``--secret_locations`` arg is passed and CommandLineArguments is initialized, SecretLocations will update with new attributes and override any existing.
+SecretLocations class is a singleton that gives quick access to secret string paths. By default it is initialized with some basic paths. When ``--secret_locations`` arg is passed and CommandLineArguments is initialized, SecretLocations will update with new attributes and override any existing.  See :ref:`command-line-secret-locations` for more details.
 
 .. code-block:: python
 
@@ -46,6 +46,7 @@ SecretLocations class is a singleton that gives quick access to secret string pa
     # Can also access via indexing
     gcs_secret_path = SecretLocations()["GCS"]
     custom_secret_path: str = SecretLocations()["CUSTOM"]
+
 
 Safe Handling of Output with Secrets (SafeTextIO)
 -------------------------------------------------
@@ -68,14 +69,27 @@ SafeTextIO is a subclass of TextIO that replaces secrets with ``*``. By default,
     api_key = "secret_api_key"
     password = "my_password"
 
-    print(f"API Key: {api_key}")  # Output: "API Key: **************"
-    print(f"Password: {password}")  # Output: "Password: ***********"
+    print(f"API Key: {api_key} Something")
+    print(f"Password: {password}Something")
 
     # Create a custom SafeTextIO for a specific file
     log_file_path = Path("log.txt")
     with log_file_path.open("w") as log_file:
         safe_logger = SafeTextIO(textio=log_file)
-        safe_logger.write("Sensitive info: secret_api_key")  # log.txt: "Sensitive info: **************"
+        safe_logger.write(f"Sensitive info: {api_key}")
+
+Output:
+
+.. code-block:: text
+
+    API Key: ************** Something
+    Password: ***********Something
+
+log.txt
+
+.. code-block:: text
+
+    Sensitive info: **************
 
 Parsing Secret Files
 --------------------
