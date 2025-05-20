@@ -7,4 +7,4 @@ This section provides additional information for those contributing to the DE Co
    :maxdepth: 2
 
    standards
-   creating_modules
+   creating-modules
