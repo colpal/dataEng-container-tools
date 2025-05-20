@@ -52,7 +52,7 @@ class SafeTextIO(TextIO):
     _bad_words: ClassVar[set[str]] = set()
     _pattern_cache: ClassVar[tuple[re.Pattern, int]] = (re.compile(""), 0)  # Track int "version" of _bad_words
 
-    def __init__(self, textio: TextIO | None = None, bad_words: Iterable[str | SupportsStr] = []) -> None:
+    def __init__(self, textio: TextIO, bad_words: Iterable[str | SupportsStr] = []) -> None:
         """Initialize safe_stdout with desired configuration.
 
         Args:
@@ -60,9 +60,6 @@ class SafeTextIO(TextIO):
             bad_words: An iterable of words to censor from output.
 
         """
-        if not textio:
-            textio = TextIO()
-
         self.__old_textio = textio
         SafeTextIO.add_words(bad_words)
 

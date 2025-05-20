@@ -21,7 +21,7 @@ class SecretManager:
     secrets: ClassVar[dict[str, str | dict]] = {}
 
     @classmethod
-    def parse_secret(cls, file: str | Path) -> str | dict | None:
+    def parse_secret(cls, file: str | Path, *, update_bad_words: bool = True) -> str | dict | None:
         """Parses the content of a secret file and returns it as a string or a dictionary.
 
         This method reads the content of the file specified by the given file path.
@@ -30,9 +30,11 @@ class SecretManager:
 
         Args:
             file (str | Path | None): The path to the secret file to be parsed.
+            update_bad_words (bool): Whether to also update the list of bad words for SafeTextIO.
 
-            str | dict: The content of the file as a dictionary if it is a valid JSON object,
-            otherwise as a stripped string.
+        Returns:
+            str | dict | None: The content of the file as a dictionary if it is a valid JSON object,
+            otherwise as a stripped string. None if the file path is invalid.
 
         Raises:
             json.JSONDecodeError: If the content is not a properly formatted JSON object
@@ -58,7 +60,9 @@ class SecretManager:
         # Add secrets to variables and bad words
         cls.secrets[file_path.as_posix()] = content
         cls.files.append(file_path)
-        cls.update_bad_words()
+
+        if update_bad_words:
+            cls.update_bad_words()
 
         return content
 
@@ -75,7 +79,8 @@ class SecretManager:
         files = [file_path for file_path in folder_path.glob("**/*") if file_path.is_file()]
         logger.info("Found these secret files: %s", [file.as_posix() for file in files])
         for file in files:
-            cls.parse_secret(file)
+            cls.parse_secret(file, update_bad_words=False)
+        cls.update_bad_words()
 
     @classmethod
     def update_bad_words(cls) -> None:
@@ -144,10 +149,7 @@ class SecretLocations(dict[str, str]):
 
             # If the user also lazy or defers the loading of a module, it can override user CLA SecretLocations
             # Ensure the key is not already initialized
-            new_paths = {
-                k: v for k, v in module_class.DEFAULT_SECRET_PATHS.items()
-                if k not in instance
-            }
+            new_paths = {k: v for k, v in module_class.DEFAULT_SECRET_PATHS.items() if k not in instance}
 
             instance.update(new_secret_locations=new_paths, set_attr=True)
 
