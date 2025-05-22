@@ -237,7 +237,7 @@ class CommandLineArguments:
 
         # Update Secret Locations with args
         if self.__secret_locations.value is not None:
-            SecretLocations().update(new_secret_locations=self.__args.secret_locations)
+            SecretLocations().update(new_secret_locations=self.__args.secret_locations, set_attr=True)
 
         # Update env variables with args
         if identifying_tags.value is not None:
